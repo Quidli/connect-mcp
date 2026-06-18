@@ -36,6 +36,8 @@
     "typescript": "^5.8.2",
     "vitest": "^3.0.9"
   },
-  "license": "UNLICENSED",
-  "private": true
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
 }
