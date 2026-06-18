@@ -5,7 +5,6 @@ import {
   isPlaceholderApiKey,
   validateRequestApiKey,
 } from './http-auth.js';
-import { CONNECT_MCP_API_KEY_PLACEHOLDER } from './metadata.js';
 
 function requestWithApiKey(value?: string): IncomingMessage {
   return {
@@ -20,7 +19,9 @@ describe('http-auth', () => {
   });
 
   it('detects placeholder keys', () => {
-    expect(isPlaceholderApiKey(CONNECT_MCP_API_KEY_PLACEHOLDER)).toBe(true);
+    expect(isPlaceholderApiKey('set-your-api-key-here')).toBe(true);
+    expect(isPlaceholderApiKey('your-connect-api-key')).toBe(true);
+    expect(isPlaceholderApiKey('<your-api-key>')).toBe(true);
     expect(isPlaceholderApiKey('real-key')).toBe(false);
   });
 
@@ -32,11 +33,19 @@ describe('http-auth', () => {
     }
   });
 
-  it('rejects placeholder api key', () => {
-    const result = validateRequestApiKey(requestWithApiKey(CONNECT_MCP_API_KEY_PLACEHOLDER));
+  it('rejects empty api key as missing', () => {
+    const result = validateRequestApiKey(requestWithApiKey(''));
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.message).toMatch(/Replace/);
+      expect(result.message).toMatch(/Missing x-api-key/);
+    }
+  });
+
+  it('rejects known placeholder api keys', () => {
+    const result = validateRequestApiKey(requestWithApiKey('set-your-api-key-here'));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.message).toMatch(/Invalid API key/);
     }
   });
 
