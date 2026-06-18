@@ -1,7 +1,5 @@
-import { randomUUID } from 'node:crypto';
 import type { IRouter, Request, Response } from 'express';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { createMcpServer } from './create-mcp-server.js';
 import { validateRequestApiKey } from './http-auth.js';
 import { resolveRequestHost } from './request-host.js';
@@ -11,10 +9,6 @@ export { resolveRequestHost } from './request-host.js';
 export interface ConnectMcpMountOptions {
   baseUrl: string;
 }
-
-type ActiveSession = {
-  transport: StreamableHTTPServerTransport;
-};
 
 function sendJsonRpcError(res: Response, status: number, message: string): void {
   if (res.headersSent) {
@@ -56,13 +50,15 @@ export function isConnectMcpHost(hostname: string, env: NodeJS.ProcessEnv = proc
 }
 
 export function mountConnectMcpHttp(router: IRouter, options: ConnectMcpMountOptions): void {
-  const sessions = new Map<string, ActiveSession>();
   const { baseUrl } = options;
 
   router.get('/health', (_req, res) => {
     res.json({ ok: true, service: 'quidli-connect-mcp' });
   });
 
+  // Stateless mode: each request creates a fresh server+transport.
+  // No in-memory session map, so Cloud Run restarts / multiple instances
+  // never cause "Missing or invalid MCP session" errors.
   router.all('/', async (req: Request, res: Response) => {
     const auth = validateRequestApiKey(req);
     if (!auth.ok) {
@@ -70,39 +66,12 @@ export function mountConnectMcpHttp(router: IRouter, options: ConnectMcpMountOpt
       return;
     }
 
-    const sessionHeader = req.headers['mcp-session-id'];
-    const sessionId = Array.isArray(sessionHeader) ? sessionHeader[0] : sessionHeader;
-
     try {
-      if (sessionId && sessions.has(sessionId)) {
-        await sessions.get(sessionId)!.transport.handleRequest(req, res, req.body);
-        return;
-      }
-
-      if (!isInitializeRequest(req.body)) {
-        sendJsonRpcError(
-          res,
-          400,
-          'Missing or invalid MCP session. Send an initialize request to start a new session.',
-        );
-        return;
-      }
-
       const server = createMcpServer({ apiKey: auth.apiKey, baseUrl });
       const transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: () => randomUUID(),
+        sessionIdGenerator: undefined, // stateless — no session tracking
         enableJsonResponse: true,
-        onsessioninitialized: (id) => {
-          sessions.set(id, { transport });
-        },
       });
-
-      transport.onclose = () => {
-        const id = transport.sessionId;
-        if (id) {
-          sessions.delete(id);
-        }
-      };
 
       await server.connect(transport);
       await transport.handleRequest(req, res, req.body);
