@@ -1,0 +1,41 @@
+{
+  "name": "@quidli/connect-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Quidli Connect product APIs",
+  "type": "module",
+  "bin": {
+    "connect-mcp": "./dist/index.js",
+    "connect-mcp-http": "./dist/index-http.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./mount": "./dist/mount.js",
+    "./http": "./dist/http.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "start:http": "node dist/index-http.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "express": "^5.2.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}
