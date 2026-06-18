@@ -4,6 +4,9 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { createMcpServer } from './create-mcp-server.js';
 import { validateRequestApiKey } from './http-auth.js';
+import { resolveRequestHost } from './request-host.js';
+
+export { resolveRequestHost } from './request-host.js';
 
 export interface ConnectMcpMountOptions {
   baseUrl: string;
