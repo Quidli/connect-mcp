@@ -2,13 +2,31 @@
   "name": "@quidli/connect-mcp",
   "version": "0.1.0",
   "description": "MCP server for Quidli Connect product APIs",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "quidli",
+    "connect",
+    "web3",
+    "identity",
+    "ai",
+    "agent"
+  ],
+  "homepage": "https://connect.quid.li",
+  "author": {
+    "name": "Quidli",
+    "url": "https://quid.xyz"
+  },
   "type": "module",
   "bin": {
-    "connect-mcp": "./dist/index.js",
-    "connect-mcp-http": "./dist/index-http.js"
+    "connect-mcp": "dist/index.js",
+    "connect-mcp-http": "dist/index-http.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "!dist/**/*.test.js",
+    "!dist/**/*.test.d.ts",
+    "!dist/**/*.test.js.map"
   ],
   "exports": {
     ".": "./dist/index.js",
@@ -16,7 +34,8 @@
     "./http": "./dist/http.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && chmod +x dist/index.js dist/index-http.js",
+    "prepublishOnly": "npm run build",
     "start": "node dist/index.js",
     "start:http": "node dist/index-http.js",
     "test": "vitest run",
