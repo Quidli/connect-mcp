@@ -38,7 +38,6 @@ Or generate programmatically:
 
 ```typescript
 import { buildCursorMcpInstallDeeplink } from '@quidli/connect-mcp/deeplink';
-// buildCursorMcpInstallDeeplink() in published package once exported — see src/deeplink.ts
 ```
 
 ### Local stdio (npm / development)
@@ -60,34 +59,9 @@ Add to `.cursor/mcp.json` (or global MCP settings):
 }
 ```
 
-For local development from this monorepo:
-
-```json
-{
-  "mcpServers": {
-    "connect-local": {
-      "command": "node",
-      "args": ["/absolute/path/to/connect-backend/packages/connect-mcp/dist/index.js"],
-      "env": {
-        "CONNECT_API_KEY": "<your-api-key>",
-        "CONNECT_API_BASE_URL": "https://api.staging.connect.quid.li"
-      }
-    }
-  }
-}
-```
-
 `CONNECT_API_KEY` is **required** for stdio mode — the process exits at startup if missing. Remote HTTP mode reads `x-api-key` from each request instead.
 
-## HTTP server (hosted deployment)
-
-### Embedded in connect-backend (production)
-
-MCP runs inside the **same Cloud Run service** as `api.connect.quid.li`. Map `mcp.connect.quid.li` as an additional custom domain on that service. Requests with MCP `Host` headers are routed to the MCP handler; API traffic is unchanged.
-
-See `docs/ai/deployment/feature-connect-api-mcp.md` in connect-backend for DNS, env vars, and smoke tests.
-
-### Standalone binary (local / debugging)
+## Standalone HTTP server (local / debugging)
 
 ```bash
 cd packages/connect-mcp
