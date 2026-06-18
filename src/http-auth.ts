@@ -2,9 +2,10 @@ import type { IncomingMessage } from 'node:http';
 import { CONNECT_MCP_API_KEY_PLACEHOLDER } from './metadata.js';
 
 const PLACEHOLDER_API_KEYS = new Set([
-  CONNECT_MCP_API_KEY_PLACEHOLDER,
   'your-connect-api-key',
   '<your-api-key>',
+  'set-your-api-key-here',
+  ...(CONNECT_MCP_API_KEY_PLACEHOLDER ? [CONNECT_MCP_API_KEY_PLACEHOLDER] : []),
 ]);
 
 export interface RequestApiKeyResult {
@@ -43,7 +44,8 @@ export function validateRequestApiKey(req: IncomingMessage): RequestApiKeyValida
   if (isPlaceholderApiKey(apiKey)) {
     return {
       ok: false,
-      message: `Replace "${CONNECT_MCP_API_KEY_PLACEHOLDER}" with your Connect API key in Cursor MCP settings (headers.x-api-key).`,
+      message:
+        'Invalid API key. Set your Connect API key in Cursor MCP settings (headers.x-api-key). Get one at https://connect.quid.li',
     };
   }
 

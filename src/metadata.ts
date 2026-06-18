@@ -1,4 +1,4 @@
-export const CONNECT_MCP_API_KEY_PLACEHOLDER = 'set-your-api-key-here';
+export const CONNECT_MCP_API_KEY_PLACEHOLDER = '';
 
 export const CONNECT_MCP_REMOTE_URL = 'https://mcp.connect.quid.li';
 
