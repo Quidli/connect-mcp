@@ -19,7 +19,7 @@ export function buildCursorRemoteMcpConfig(
 }
 
 export function buildCursorMcpInstallDeeplink(
-  serverName = 'connect',
+  serverName = 'quidli-connect',
   config: CursorMcpRemoteConfig = buildCursorRemoteMcpConfig(),
 ): string {
   const encoded = Buffer.from(JSON.stringify(config), 'utf8').toString('base64');

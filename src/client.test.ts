@@ -2,22 +2,33 @@ import { describe, expect, it, vi, afterEach } from 'vitest';
 import { ConnectClient } from '../src/client.js';
 import { mapHttpError } from '../src/errors.js';
 
+const paidFetchMock = vi.fn();
+
+vi.mock('../src/x402-fetch.js', () => ({
+  createPaidFetch: vi.fn(() => paidFetchMock),
+  normalizeEvmPrivateKey: (value: string | undefined) =>
+    value?.trim() ? (`0x${value.replace(/^0x/, '')}` as `0x${string}`) : undefined,
+}));
+
 describe('mapHttpError', () => {
   it('maps 401 with dashboard hint', () => {
     expect(mapHttpError(401, { message: 'Invalid API key' })).toContain('connect.quid.li');
   });
 
   it('maps 402 to api-key guidance', () => {
-    expect(mapHttpError(402, { message: 'Payment Required' })).toContain('x402 is not supported');
+    expect(mapHttpError(402, { message: 'Payment Required' }, 'api-key')).toContain(
+      'CONNECT_API_KEY',
+    );
   });
 });
 
 describe('ConnectClient', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    paidFetchMock.mockReset();
   });
 
-  const config = { baseUrl: 'https://api.test', apiKey: 'secret-key' };
+  const config = { baseUrl: 'https://api.test', apiKey: 'secret-key', x402EvmNetwork: 8453 };
 
   it('sends x-api-key on authenticated requests', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
@@ -152,5 +163,43 @@ describe('ConnectClient', () => {
     expect(fetchMock).toHaveBeenCalledOnce();
     const url = fetchMock.mock.calls[0]?.[0];
     expect(String(url)).toContain('ignoreFailedRecipients=true');
+  });
+
+  it('uses paid fetch for authenticated requests in x402 mode', async () => {
+    paidFetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ status: 'completed' }),
+    });
+
+    const client = new ConnectClient({
+      baseUrl: 'https://api.test',
+      evmPrivateKey: '0xabc',
+      x402EvmNetwork: 8453,
+    });
+    await client.request({ method: 'POST', path: '/lookup', body: { recipients: [] } });
+
+    expect(paidFetchMock).toHaveBeenCalledOnce();
+    const [, init] = paidFetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.headers).not.toHaveProperty('x-api-key');
+  });
+
+  it('uses plain fetch for public price in x402 mode', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ lookup: {} }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const client = new ConnectClient({
+      baseUrl: 'https://api.test',
+      evmPrivateKey: '0xabc',
+      x402EvmNetwork: 8453,
+    });
+    await client.request({ method: 'GET', path: '/price', authenticated: false });
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(paidFetchMock).not.toHaveBeenCalled();
   });
 });

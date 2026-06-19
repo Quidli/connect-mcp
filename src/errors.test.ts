@@ -28,7 +28,13 @@ describe('mapHttpError', () => {
   });
 
   it('maps 402 to api-key guidance', () => {
-    expect(mapHttpError(402, { message: 'Payment Required' })).toContain('x402 is not supported');
+    expect(mapHttpError(402, { message: 'Payment Required' }, 'api-key')).toContain(
+      'CONNECT_API_KEY',
+    );
+  });
+
+  it('maps 402 to x402 wallet guidance', () => {
+    expect(mapHttpError(402, { message: 'Payment Required' }, 'x402')).toContain('USDC');
   });
 
   it('maps 404 to detail', () => {

@@ -1,57 +1,128 @@
-# @quidli/connect-mcp
+# Quidli Connect MCP
 
-MCP server exposing [Quidli Connect](https://connect.quid.li) product APIs as tools for Cursor, Claude Desktop, and other MCP hosts.
+Use [Quidli Connect](https://connect.quid.li) from Cursor, Claude Desktop, or any MCP-compatible client — wallet lookup, scores, Smart Send drops, and the Connect agent.
 
-## Requirements
+## Choose how to connect
 
-- Node.js 20+
-- A Connect API key ([Enable API access](https://connect.quid.li))
 
-## Cursor configuration
+|                 | **Hosted** (`mcp.connect.quid.li`)                                                   | **Local** (`npx @quidli/connect-mcp`)                                                      |
+| --------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| **Setup**       | Add a URL in MCP settings                                                            | Run a local process via `npx`                                                              |
+| **Auth**        | Connect API key only                                                                 | API key **or** x402 pay-per-call                                                           |
+| **Pros**        | No install; always on Quidli infrastructure; simplest setup                          | Wallet private key never leaves your machine; pay per call with USDC instead of an API key |
+| **Cons**        | Requires a Connect API key; no pay-per-call billing                                  | Requires Node.js 20+; `npx` may download the package on first run                          |
+| **Limitations** | Cannot use x402 / wallet auth — do **not** send a private key to the hosted endpoint | x402 mode needs USDC on Base (mainnet `8453`); `connect_drop` requires an API key          |
 
-### Remote URL (recommended for production)
 
-Same pattern as GitHub MCP — Cursor connects to a hosted endpoint and sends your API key in headers:
+Get a Connect API key at [connect.quid.li](https://connect.quid.li) → **Enable API access**.
+
+---
+
+## Hosted (recommended)
+
+Best if you have a Connect API key and want zero local setup.
+
+### Cursor
+
+**If you already have other MCP servers:** skip the deeplink and [add manually](#cursor-manual) — the one-click install can overwrite your entire `mcp.json` in some Cursor versions.
+
+[Add to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=quidli-connect&config=eyJ1cmwiOiJodHRwczovL21jcC5jb25uZWN0LnF1aWQubGkiLCJoZWFkZXJzIjp7IngtYXBpLWtleSI6IiJ9fQ==)
+
+Or paste into **Cursor Settings → MCP → Add new MCP server**:
+
+```
+cursor://anysphere.cursor-deeplink/mcp/install?name=quidli-connect&config=eyJ1cmwiOiJodHRwczovL21jcC5jb25uZWN0LnF1aWQubGkiLCJoZWFkZXJzIjp7IngtYXBpLWtleSI6IiJ9fQ==
+```
+
+Then open **Cursor Settings → MCP → quidli-connect** and set `headers.x-api-key` to your Connect API key.
+
+#### Add manually {#cursor-manual}
+
+Merge this into `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project) under `mcpServers` — do not replace your existing entries:
+
+```json
+"quidli-connect": {
+  "url": "https://mcp.connect.quid.li",
+  "headers": {
+    "x-api-key": "<your-connect-api-key>"
+  }
+}
+```
+
+### Claude Desktop
+
+1. Open **Claude → Settings → Connectors** (or **Settings → Developer → Edit Config** on older versions).
+2. Add a custom MCP connector with URL `https://mcp.connect.quid.li` and header `x-api-key: <your-connect-api-key>`.
+
+Or merge this into your config file and restart Claude:
+
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
-    "connect": {
+    "quidli-connect": {
       "url": "https://mcp.connect.quid.li",
       "headers": {
-        "x-api-key": "set-your-api-key-here"
+        "x-api-key": "<your-connect-api-key>"
       }
     }
   }
 }
 ```
 
-After one-click install, open **Cursor Settings → MCP → connect** and replace `set-your-api-key-here` with your real API key from [connect.quid.li](https://connect.quid.li) (Enable API access). Until you do, the server returns `401` with setup instructions.
-
-**Add to Cursor** deeplink (placeholder key pre-filled):
-
-```
-cursor://anysphere.cursor-deeplink/mcp/install?name=connect&config=eyJ1cmwiOiJodHRwczovL21jcC5jb25uZWN0LnF1aWQubGkIiwiaGVhZGVycyI6eyJ4LWFwaS1rZXkiOiJzZXQteW91ci1hcGkta2V5LWhlcmUifX0=
-```
-
-Or generate programmatically:
-
-```typescript
-import { buildCursorMcpInstallDeeplink } from '@quidli/connect-mcp/deeplink';
-```
-
-### Local stdio (npm / development)
-
-Add to `.cursor/mcp.json` (or global MCP settings):
+If your Claude version does not support remote `url` connectors, use the local bridge instead (still hosted API, runs a small local helper):
 
 ```json
 {
   "mcpServers": {
-    "connect": {
+    "quidli-connect": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "--http",
+        "https://mcp.connect.quid.li",
+        "--header",
+        "x-api-key:${CONNECT_API_KEY}"
+      ],
+      "env": {
+        "CONNECT_API_KEY": "<your-connect-api-key>"
+      }
+    }
+  }
+}
+```
+
+Requires **Node.js 20+** for the bridge. Restart Claude Desktop after saving. You should see a hammer icon in the chat input when tools are available.
+
+Until a valid API key is set, requests return `401` with setup instructions.
+
+---
+
+## Local (stdio)
+
+Best if you want pay-per-call with a wallet, or prefer credentials in a local env file.
+
+Requires **Node.js 20+**.
+
+### Cursor
+
+Add one of the following to `.cursor/mcp.json` (project) or your global MCP settings.
+
+#### Option A — API key
+
+Same billing model as hosted; credentials stay on your machine.
+
+```json
+{
+  "mcpServers": {
+    "quidli-connect": {
       "command": "npx",
       "args": ["-y", "@quidli/connect-mcp"],
       "env": {
-        "CONNECT_API_KEY": "<your-api-key>",
+        "CONNECT_API_KEY": "<your-connect-api-key>",
         "CONNECT_API_BASE_URL": "https://api.connect.quid.li"
       }
     }
@@ -59,59 +130,91 @@ Add to `.cursor/mcp.json` (or global MCP settings):
 }
 ```
 
-`CONNECT_API_KEY` is **required** for stdio mode — the process exits at startup if missing. Remote HTTP mode reads `x-api-key` from each request instead.
+#### Option B — x402 pay-per-call (wallet)
 
-## Standalone HTTP server (local / debugging)
+No API key. Authenticated calls pay automatically when the API returns HTTP 402. Your wallet private key is only read by the local process.
 
-```bash
-cd packages/connect-mcp
-npm run build
-CONNECT_API_BASE_URL=https://api.connect.quid.li npm run start:http
+```json
+{
+  "mcpServers": {
+    "quidli-connect": {
+      "command": "npx",
+      "args": ["-y", "@quidli/connect-mcp"],
+      "env": {
+        "EVM_PRIVATE_KEY": "0x<wallet-with-usdc-on-base>",
+        "CONNECT_API_BASE_URL": "https://api.connect.quid.li",
+        "CONNECT_X402_EVM_NETWORK": "8453"
+      }
+    }
+  }
+}
 ```
 
-Environment:
+Use `84532` for Base Sepolia when pointing at a staging API.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `CONNECT_MCP_HTTP_HOST` | `0.0.0.0` | Bind address |
-| `CONNECT_MCP_HTTP_PORT` | `8080` | Listen port |
-| `CONNECT_API_BASE_URL` | `https://api.connect.quid.li` | Upstream Connect API |
+### Claude Desktop
 
-Health check: `GET /health`
+1. Open **Claude → Settings → Developer → Edit Config** (enable Developer mode first if you do not see it).
+2. Merge one of the blocks below into `mcpServers` in:
 
-## Tools (7)
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
-| Tool | HTTP | Auth |
-|------|------|------|
-| `connect_get_price` | `GET /price` | none |
-| `connect_lookup` | `POST /lookup` | api-key |
-| `connect_scores_batch` | `POST /scores` | api-key |
-| `connect_scores_by_account` | `GET /scores/:platform/:identifier` | api-key |
-| `connect_scores_by_username` | `GET /scores/u/:username` | api-key |
-| `connect_drop` | `POST /drop` | api-key |
-| `connect_agent_prompt` | `POST /agent` | api-key |
+3. Restart Claude Desktop.
 
-Not exposed: `POST /lookup/exposed`, agent feedback, member/admin routes.
+#### Option A — API key
 
-## Auth notes
-
-- **MCP uses api-key only.** x402 pay-per-call and Privy Bearer are HTTP-only (use [API docs](https://connect.quid.li/docs) or skills directly).
-- `connect_get_price` is public on the HTTP API and does not send `x-api-key`.
-
-## Development
-
-```bash
-cd packages/connect-mcp
-npm install
-npm test
-npm run build
-CONNECT_API_KEY=<key> npm start
+```json
+{
+  "mcpServers": {
+    "quidli-connect": {
+      "command": "npx",
+      "args": ["-y", "@quidli/connect-mcp"],
+      "env": {
+        "CONNECT_API_KEY": "<your-connect-api-key>",
+        "CONNECT_API_BASE_URL": "https://api.connect.quid.li"
+      }
+    }
+  }
+}
 ```
 
-## Publish
+#### Option B — x402 pay-per-call (wallet)
 
-```bash
-npm publish --access public
+```json
+{
+  "mcpServers": {
+    "quidli-connect": {
+      "command": "npx",
+      "args": ["-y", "@quidli/connect-mcp"],
+      "env": {
+        "EVM_PRIVATE_KEY": "0x<wallet-with-usdc-on-base>",
+        "CONNECT_API_BASE_URL": "https://api.connect.quid.li",
+        "CONNECT_X402_EVM_NETWORK": "8453"
+      }
+    }
+  }
+}
 ```
 
-(Requires `@quidli` npm org access.)
+If both `CONNECT_API_KEY` and `EVM_PRIVATE_KEY` are set, the API key is used.
+
+At least one of `CONNECT_API_KEY` or `EVM_PRIVATE_KEY` is required for local mode.
+
+---
+
+## Tools
+
+
+| Tool                         | What it does                                              |
+| ---------------------------- | --------------------------------------------------------- |
+| `connect_get_price`          | List reference prices (no auth)                           |
+| `connect_lookup`             | Resolve social identities to EVM and SOL wallet addresses |
+| `connect_scores_batch`       | Batch scores for accounts or usernames                    |
+| `connect_scores_by_account`  | Scores for one linked account                             |
+| `connect_scores_by_username` | Scores by Connect username                                |
+| `connect_drop`               | Smart Send (batch token transfer) — **API key only**      |
+| `connect_agent_prompt`       | Natural-language agent for recipients discovery           |
+
+
+Ask your client to use these tools when you need Connect data or actions.

@@ -18,7 +18,7 @@ describe('deeplink', () => {
   it('builds a cursor install deeplink', () => {
     const link = buildCursorMcpInstallDeeplink();
     expect(link).toMatch(/^cursor:\/\/anysphere\.cursor-deeplink\/mcp\/install\?/);
-    expect(link).toContain('name=connect');
+    expect(link).toContain('name=quidli-connect');
     expect(link).toContain('config=');
 
     const configParam = new URL(link.replace('cursor://anysphere.cursor-deeplink/mcp/install?', 'http://x?'))

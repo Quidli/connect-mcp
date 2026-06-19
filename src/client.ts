@@ -1,9 +1,12 @@
 import { mapHttpError } from './errors.js';
 import { errorResult, successResult } from './result.js';
 import type { ConnectClientConfig } from './config.js';
+import { createPaidFetch } from './x402-fetch.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 export type HttpMethod = 'GET' | 'POST';
+
+export type ConnectAuthMode = 'api-key' | 'x402';
 
 export interface ConnectRequestOptions {
   method: HttpMethod;
@@ -15,7 +18,22 @@ export interface ConnectRequestOptions {
 }
 
 export class ConnectClient {
-  constructor(private readonly config: ConnectClientConfig) {}
+  private readonly authMode: ConnectAuthMode;
+  private readonly paidFetch?: typeof fetch;
+
+  constructor(private readonly config: ConnectClientConfig) {
+    this.authMode = config.apiKey ? 'api-key' : 'x402';
+    if (!config.apiKey && config.evmPrivateKey) {
+      this.paidFetch = createPaidFetch(config.evmPrivateKey, config.x402EvmNetwork);
+    }
+  }
+
+  private resolveFetch(authenticated: boolean): typeof fetch {
+    if (authenticated && this.paidFetch) {
+      return this.paidFetch;
+    }
+    return fetch;
+  }
 
   async request(options: ConnectRequestOptions): Promise<CallToolResult> {
     const { method, path, body, query, timeoutMs } = options;
@@ -34,7 +52,7 @@ export class ConnectClient {
       accept: 'application/json',
     };
 
-    if (authenticated) {
+    if (authenticated && this.config.apiKey) {
       headers['x-api-key'] = this.config.apiKey;
     }
 
@@ -47,8 +65,10 @@ export class ConnectClient {
       ? setTimeout(() => controller.abort(), timeoutMs)
       : undefined;
 
+    const httpFetch = this.resolveFetch(authenticated);
+
     try {
-      const response = await fetch(url, {
+      const response = await httpFetch(url, {
         method,
         headers,
         body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -59,9 +79,9 @@ export class ConnectClient {
 
       if (!response.ok) {
         if (response.status === 504) {
-          return errorResult(mapHttpError(504, raw));
+          return errorResult(mapHttpError(504, raw, this.authMode));
         }
-        return errorResult(mapHttpError(response.status, raw));
+        return errorResult(mapHttpError(response.status, raw, this.authMode));
       }
 
       return successResult({

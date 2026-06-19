@@ -1,5 +1,6 @@
 import type { IRouter, Request, Response } from 'express';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { createHostedClientConfig } from './config.js';
 import { createMcpServer } from './create-mcp-server.js';
 import { validateRequestApiKey } from './http-auth.js';
 import { resolveRequestHost } from './request-host.js';
@@ -67,7 +68,7 @@ export function mountConnectMcpHttp(router: IRouter, options: ConnectMcpMountOpt
     }
 
     try {
-      const server = createMcpServer({ apiKey: auth.apiKey, baseUrl });
+      const server = createMcpServer(createHostedClientConfig(auth.apiKey, baseUrl));
       const transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: undefined, // stateless — no session tracking
         enableJsonResponse: true,

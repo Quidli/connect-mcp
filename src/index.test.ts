@@ -10,7 +10,7 @@ describe('index entry', () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => undefined) as typeof process.exit);
 
     vi.doMock('./server.js', () => ({
-      main: vi.fn().mockRejectedValue(new Error('CONNECT_API_KEY is required')),
+      main: vi.fn().mockRejectedValue(new Error('CONNECT_API_KEY or EVM_PRIVATE_KEY is required')),
     }));
 
     await import('./index.js');

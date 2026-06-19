@@ -11,16 +11,26 @@ export function parseNestErrorMessage(body: unknown): string {
   return 'Request failed';
 }
 
-export function mapHttpError(status: number, body: unknown): string {
+export type ConnectAuthMode = 'api-key' | 'x402';
+
+export function mapHttpError(
+  status: number,
+  body: unknown,
+  authMode: ConnectAuthMode = 'api-key',
+): string {
   const detail = parseNestErrorMessage(body);
 
   switch (status) {
     case 400:
       return detail;
     case 401:
-      return `Unauthorized: ${detail}. Verify CONNECT_API_KEY at https://connect.quid.li`;
+      return authMode === 'api-key'
+        ? `Unauthorized: ${detail}. Verify CONNECT_API_KEY at https://connect.quid.li`
+        : `Unauthorized: ${detail}. Verify EVM_PRIVATE_KEY and wallet USDC balance for x402.`;
     case 402:
-      return `Payment required (${detail}). MCP requires a valid Connect API key — x402 is not supported in MCP.`;
+      return authMode === 'api-key'
+        ? `Payment required (${detail}). Set CONNECT_API_KEY or use local stdio with EVM_PRIVATE_KEY for x402.`
+        : `Payment failed (${detail}). Ensure your wallet has USDC on the expected network and EVM_PRIVATE_KEY is correct.`;
     case 404:
       return detail;
     case 504:
