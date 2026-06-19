@@ -53,7 +53,7 @@ export function isConnectMcpHost(hostname: string, env: NodeJS.ProcessEnv = proc
 export function mountConnectMcpHttp(router: IRouter, options: ConnectMcpMountOptions): void {
   const { baseUrl } = options;
 
-  router.get('/health', (_req, res) => {
+  router.get('/health', (_req: Request, res: Response) => {
     res.json({ ok: true, service: 'quidli-connect-mcp' });
   });
 
