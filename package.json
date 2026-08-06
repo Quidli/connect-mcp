@@ -39,8 +39,8 @@
     "./http": "./dist/http.js"
   },
   "scripts": {
-    "build": "tsc && chmod +x dist/index.js dist/index-http.js",
-    "prepublishOnly": "npm run build",
+    "build": "tsc",
+    "prepublishOnly": "npm run build && chmod +x dist/index.js dist/index-http.js",
     "start": "node dist/index.js",
     "start:http": "node dist/index-http.js",
     "test": "vitest run",
