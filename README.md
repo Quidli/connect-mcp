@@ -210,10 +210,12 @@ At least one of `CONNECT_API_KEY` or `EVM_PRIVATE_KEY` is required for local mod
 | ---------------------------- | --------------------------------------------------------- |
 | `connect_get_price`          | List reference prices (no auth)                           |
 | `connect_lookup`             | Resolve social identities to EVM and SOL wallet addresses |
+| `connect_lookup_exposed`     | List platforms a recipient has exposed on Connect         |
 | `connect_scores_batch`       | Batch scores for accounts or usernames                    |
 | `connect_scores_by_account`  | Scores for one linked account                             |
 | `connect_scores_by_username` | Scores by Connect username                                |
 | `connect_drop`               | Smart Send (batch token transfer) — **API key only**      |
+| `connect_drop_balance`       | Smart Send wallet balances on a chain — **API key only**  |
 | `connect_agent_prompt`       | Natural-language agent for recipients discovery           |
 
 

@@ -16,7 +16,7 @@ function createMockServer(): { server: McpServer; handlers: Map<string, ToolHand
 }
 
 describe('registerTools', () => {
-  it('registers exactly 7 tools with no feedback or exposed routes', () => {
+  it('registers exactly 9 tools with no feedback route', () => {
     const { server, handlers } = createMockServer();
     const client = { request: vi.fn() } as unknown as ConnectClient;
 
@@ -24,7 +24,7 @@ describe('registerTools', () => {
 
     expect([...handlers.keys()].sort()).toEqual([...CONNECT_MCP_TOOL_NAMES].sort());
     expect(handlers.has('connect_agent_feedback')).toBe(false);
-    expect(handlers.has('connect_lookup_exposed')).toBe(false);
+    expect(handlers.has('connect_lookup_exposed')).toBe(true);
   });
 
   it('connect_get_price calls GET /price without auth', async () => {
@@ -53,6 +53,35 @@ describe('registerTools', () => {
       method: 'POST',
       path: '/lookup',
       body: { recipients },
+    });
+  });
+
+  it('connect_lookup_exposed POSTs recipient to /lookup/exposed', async () => {
+    const { server, handlers } = createMockServer();
+    const request = vi.fn().mockResolvedValue({ content: [] });
+    registerTools(server, { request } as unknown as ConnectClient);
+
+    const recipient = { type: 'farcaster', username: 'luso' };
+    await handlers.get('connect_lookup_exposed')!({ recipient });
+
+    expect(request).toHaveBeenCalledWith({
+      method: 'POST',
+      path: '/lookup/exposed',
+      body: { recipient },
+    });
+  });
+
+  it('connect_drop_balance GETs /drop/balance with chainId query', async () => {
+    const { server, handlers } = createMockServer();
+    const request = vi.fn().mockResolvedValue({ content: [] });
+    registerTools(server, { request } as unknown as ConnectClient);
+
+    await handlers.get('connect_drop_balance')!({ chainId: 8453 });
+
+    expect(request).toHaveBeenCalledWith({
+      method: 'GET',
+      path: '/drop/balance',
+      query: { chainId: '8453' },
     });
   });
 

@@ -2,7 +2,9 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ConnectClient } from '../client.js';
 import {
   agentPromptInputSchema,
+  dropBalanceInputSchema,
   dropInputSchema,
+  lookupExposedInputSchema,
   lookupInputSchema,
   scoresBatchInputSchema,
   scoresByAccountInputSchema,
@@ -14,10 +16,12 @@ const AGENT_TIMEOUT_MS = 65_000;
 export const CONNECT_MCP_TOOL_NAMES = [
   'connect_get_price',
   'connect_lookup',
+  'connect_lookup_exposed',
   'connect_scores_batch',
   'connect_scores_by_account',
   'connect_scores_by_username',
   'connect_drop',
+  'connect_drop_balance',
   'connect_agent_prompt',
 ] as const;
 
@@ -38,6 +42,18 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
         method: 'POST',
         path: '/lookup',
         body: { recipients },
+      }),
+  );
+
+  server.tool(
+    'connect_lookup_exposed',
+    'List platforms a recipient has exposed on Connect, with enriched profile, scores, and wallet addresses. May require x402 payment when the profile owner charges for lookups.',
+    lookupExposedInputSchema,
+    async ({ recipient }) =>
+      client.request({
+        method: 'POST',
+        path: '/lookup/exposed',
+        body: { recipient },
       }),
   );
 
@@ -88,6 +104,18 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
           ignoreFailedRecipients === true
             ? { ignoreFailedRecipients: 'true' }
             : undefined,
+      }),
+  );
+
+  server.tool(
+    'connect_drop_balance',
+    'Get native and ERC-20 balances for the API key owner Smart Send embedded wallet on a chain. Use before connect_drop to verify gas and token funds.',
+    dropBalanceInputSchema,
+    async ({ chainId }) =>
+      client.request({
+        method: 'GET',
+        path: '/drop/balance',
+        query: { chainId: String(chainId) },
       }),
   );
 

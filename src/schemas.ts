@@ -30,6 +30,12 @@ export const lookupInputSchema = {
     .describe('Recipients to resolve to EVM/Solana wallets'),
 };
 
+export const lookupExposedInputSchema = {
+  recipient: linkedAccountSchema.describe(
+    'Recipient whose exposed linked accounts and Connect profile should be listed',
+  ),
+};
+
 export const scoresBatchInputSchema = {
   users: z.array(linkedAccountSchema).min(1).describe('Users to fetch scores for'),
   filter: z
@@ -64,6 +70,10 @@ export const scoresByAccountInputSchema = {
 
 export const scoresByUsernameInputSchema = {
   username: z.string().min(1),
+};
+
+export const dropBalanceInputSchema = {
+  chainId: z.number().int().describe('EVM chain ID (Smart Send supported chains only)'),
 };
 
 export const dropInputSchema = {
