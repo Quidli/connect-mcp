@@ -16,7 +16,7 @@ function createMockServer(): { server: McpServer; handlers: Map<string, ToolHand
 }
 
 describe('registerTools', () => {
-  it('registers exactly 9 tools with no feedback route', () => {
+  it('registers exactly 10 tools with no feedback route', () => {
     const { server, handlers } = createMockServer();
     const client = { request: vi.fn() } as unknown as ConnectClient;
 
@@ -68,6 +68,19 @@ describe('registerTools', () => {
       method: 'POST',
       path: '/lookup/exposed',
       body: { recipient },
+    });
+  });
+
+  it('connect_me GETs /account/me with auth', async () => {
+    const { server, handlers } = createMockServer();
+    const request = vi.fn().mockResolvedValue({ content: [] });
+    registerTools(server, { request } as unknown as ConnectClient);
+
+    await handlers.get('connect_me')!({});
+
+    expect(request).toHaveBeenCalledWith({
+      method: 'GET',
+      path: '/account/me',
     });
   });
 
