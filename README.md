@@ -1,6 +1,46 @@
 # Quidli Connect MCP
 
-Use [Quidli Connect](https://connect.quid.li) from Cursor, Claude Desktop, or any MCP-compatible client — wallet lookup, scores, Smart Send drops, and the Connect agent.
+Identity and reputation for agents. Resolve a social handle to a wallet, check reputation, and send tokens — from Cursor, Claude Desktop, Claude Code, or any MCP-compatible client.
+
+## Try it in one command
+
+No API key required.
+
+**Hosted** — add it to Claude Code:
+
+```bash
+claude mcp add --transport http quidli https://mcp.connect.quid.li/
+```
+
+**Local** — runs on your machine:
+
+```bash
+npx -y @quidli/connect-mcp
+```
+
+Then ask your agent:
+
+> Resolve the Farcaster handle `ahn.eth` to a wallet.
+
+```json
+{
+  "status": "completed",
+  "results": [
+    {
+      "type": "farcaster",
+      "value": "ahn.eth",
+      "ethWalletAddress": "0x07De92Ce6474D718c80e696516bf0bE53290fF5E",
+      "solWalletAddress": "9DD2CqPKZJoo7ZRgCXxJNMjhzfgVihSKtkZpn8qnEWK9"
+    }
+  ]
+}
+```
+
+Resolves across Telegram, Discord, Farcaster, X, GitHub, LinkedIn, email and phone — and generates a wallet for people who have never used Quidli.
+
+Lookup, scores, agent and price run without a key under a shared anonymous quota. Add a [Connect API key](https://connect.quid.li) for higher limits, your own profile (`connect_me`), and Smart Send.
+
+---
 
 ## Choose how to connect
 
