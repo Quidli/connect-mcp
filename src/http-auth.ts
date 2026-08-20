@@ -1,4 +1,5 @@
-import type { IncomingMessage } from 'node:http';
+import type { IncomingHttpHeaders } from 'node:http';
+import { isAnonymousMcpAllowed } from './config.js';
 import { CONNECT_MCP_API_KEY_PLACEHOLDER } from './metadata.js';
 
 const PLACEHOLDER_API_KEYS = new Set([
@@ -10,7 +11,7 @@ const PLACEHOLDER_API_KEYS = new Set([
 
 export interface RequestApiKeyResult {
   ok: true;
-  apiKey: string;
+  apiKey?: string;
 }
 
 export interface RequestApiKeyError {
@@ -20,7 +21,11 @@ export interface RequestApiKeyError {
 
 export type RequestApiKeyValidation = RequestApiKeyResult | RequestApiKeyError;
 
-export function extractRequestApiKey(req: IncomingMessage): string | undefined {
+export interface HeaderCarrier {
+  headers: IncomingHttpHeaders;
+}
+
+export function extractRequestApiKey(req: HeaderCarrier): string | undefined {
   const raw = req.headers['x-api-key'];
   const value = Array.isArray(raw) ? raw[0] : raw;
   const trimmed = value?.trim();
@@ -31,9 +36,15 @@ export function isPlaceholderApiKey(apiKey: string): boolean {
   return PLACEHOLDER_API_KEYS.has(apiKey);
 }
 
-export function validateRequestApiKey(req: IncomingMessage): RequestApiKeyValidation {
+export function validateRequestApiKey(
+  req: HeaderCarrier,
+  env: NodeJS.ProcessEnv = process.env,
+): RequestApiKeyValidation {
   const apiKey = extractRequestApiKey(req);
   if (!apiKey) {
+    if (isAnonymousMcpAllowed(env)) {
+      return { ok: true };
+    }
     return {
       ok: false,
       message:

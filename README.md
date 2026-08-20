@@ -8,37 +8,43 @@ Use [Quidli Connect](https://connect.quid.li) from Cursor, Claude Desktop, or an
 |                 | **Hosted** (`mcp.connect.quid.li`)                                                   | **Local** (`npx @quidli/connect-mcp`)                                                      |
 | --------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
 | **Setup**       | Add a URL in MCP settings                                                            | Run a local process via `npx`                                                              |
-| **Auth**        | Connect API key only                                                                 | API key, x402 pay-per-call, or none for lookup/scores/agent                                |
-| **Pros**        | No install; always on Quidli infrastructure; simplest setup                          | Wallet private key never leaves your machine; pay per call with USDC instead of an API key |
-| **Cons**        | Requires a Connect API key; no pay-per-call billing                                  | Requires Node.js 20+; `npx` may download the package on first run                          |
+| **Auth**        | Optional API key. Without a key: lookup/scores/agent/price under a shared anonymous quota | API key, x402 pay-per-call, or none for lookup/scores/agent                                |
+| **Pros**        | No install; try without a key; always on Quidli infrastructure                       | Wallet private key never leaves your machine; pay per call with USDC instead of an API key |
+| **Cons**        | Anonymous traffic shares a global rate limit; no pay-per-call billing                | Requires Node.js 20+; `npx` may download the package on first run                          |
 | **Limitations** | Cannot use x402 / wallet auth — do **not** send a private key to the hosted endpoint | x402 mode needs USDC on Base (mainnet `8453`); `connect_drop` requires an API key          |
 
 
-Get a Connect API key at [connect.quid.li](https://connect.quid.li) → **Enable API access**.
+Get a Connect API key at [connect.quid.li](https://connect.quid.li) → **Enable API access** for higher limits, `connect_me`, and Smart Send.
 
 ---
 
 ## Hosted (recommended)
 
-Best if you have a Connect API key and want zero local setup.
+Zero local setup. Lookup, scores, agent, and price work without an API key (shared anonymous quota). Add a key for higher limits, your profile (`connect_me`), and Smart Send.
 
 ### Cursor
 
 **If you already have other MCP servers:** skip the deeplink and [add manually](#cursor-manual) — the one-click install can overwrite your entire `mcp.json` in some Cursor versions.
 
-[Add to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=quidli-connect&config=eyJ1cmwiOiJodHRwczovL21jcC5jb25uZWN0LnF1aWQubGkiLCJoZWFkZXJzIjp7IngtYXBpLWtleSI6IiJ9fQ==)
+[Add to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=quidli-connect&config=eyJ1cmwiOiJodHRwczovL21jcC5jb25uZWN0LnF1aWQubGkifQ==)
 
 Or paste into **Cursor Settings → MCP → Add new MCP server**:
 
 ```
-cursor://anysphere.cursor-deeplink/mcp/install?name=quidli-connect&config=eyJ1cmwiOiJodHRwczovL21jcC5jb25uZWN0LnF1aWQubGkiLCJoZWFkZXJzIjp7IngtYXBpLWtleSI6IiJ9fQ==
+cursor://anysphere.cursor-deeplink/mcp/install?name=quidli-connect&config=eyJ1cmwiOiJodHRwczovL21jcC5jb25uZWN0LnF1aWQubGkifQ==
 ```
-
-Then open **Cursor Settings → MCP → quidli-connect** and set `headers.x-api-key` to your Connect API key.
 
 #### Add manually {#cursor-manual}
 
 Merge this into `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project) under `mcpServers` — do not replace your existing entries:
+
+```json
+"quidli-connect": {
+  "url": "https://mcp.connect.quid.li"
+}
+```
+
+Optional — higher limits and Smart Send:
 
 ```json
 "quidli-connect": {
@@ -52,7 +58,7 @@ Merge this into `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project) un
 ### Claude Desktop
 
 1. Open **Claude → Settings → Connectors** (or **Settings → Developer → Edit Config** on older versions).
-2. Add a custom MCP connector with URL `https://mcp.connect.quid.li` and header `x-api-key: <your-connect-api-key>`.
+2. Add a custom MCP connector with URL `https://mcp.connect.quid.li`. Optionally set header `x-api-key: <your-connect-api-key>`.
 
 Or merge this into your config file and restart Claude:
 
@@ -63,10 +69,7 @@ Or merge this into your config file and restart Claude:
 {
   "mcpServers": {
     "quidli-connect": {
-      "url": "https://mcp.connect.quid.li",
-      "headers": {
-        "x-api-key": "<your-connect-api-key>"
-      }
+      "url": "https://mcp.connect.quid.li"
     }
   }
 }
@@ -83,13 +86,8 @@ If your Claude version does not support remote `url` connectors, use the local b
         "-y",
         "mcp-remote@latest",
         "--http",
-        "https://mcp.connect.quid.li",
-        "--header",
-        "x-api-key:${CONNECT_API_KEY}"
-      ],
-      "env": {
-        "CONNECT_API_KEY": "<your-connect-api-key>"
-      }
+        "https://mcp.connect.quid.li"
+      ]
     }
   }
 }
@@ -97,7 +95,7 @@ If your Claude version does not support remote `url` connectors, use the local b
 
 Requires **Node.js 20+** for the bridge. Restart Claude Desktop after saving. You should see a hammer icon in the chat input when tools are available.
 
-Until a valid API key is set, requests return `401` with setup instructions.
+Without a key, `initialize` / `tools/list` always succeed. Anonymous `tools/call` share a global quota (HTTP **429** when exceeded — get a key for higher limits). Placeholder keys still return **401**.
 
 ---
 

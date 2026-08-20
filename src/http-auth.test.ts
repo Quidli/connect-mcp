@@ -25,24 +25,33 @@ describe('http-auth', () => {
     expect(isPlaceholderApiKey('real-key')).toBe(false);
   });
 
-  it('rejects missing api key', () => {
-    const result = validateRequestApiKey(requestWithApiKey());
+  it('rejects missing api key when anonymous is disabled', () => {
+    const result = validateRequestApiKey(requestWithApiKey(), {});
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.message).toMatch(/Missing x-api-key/);
     }
   });
 
-  it('rejects empty api key as missing', () => {
-    const result = validateRequestApiKey(requestWithApiKey(''));
+  it('allows missing api key when anonymous is enabled', () => {
+    const result = validateRequestApiKey(requestWithApiKey(), {
+      CONNECT_MCP_ALLOW_ANONYMOUS: 'true',
+    });
+    expect(result).toEqual({ ok: true });
+  });
+
+  it('rejects empty api key as missing when anonymous is disabled', () => {
+    const result = validateRequestApiKey(requestWithApiKey(''), {});
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.message).toMatch(/Missing x-api-key/);
     }
   });
 
-  it('rejects known placeholder api keys', () => {
-    const result = validateRequestApiKey(requestWithApiKey('set-your-api-key-here'));
+  it('rejects known placeholder api keys even when anonymous is enabled', () => {
+    const result = validateRequestApiKey(requestWithApiKey('set-your-api-key-here'), {
+      CONNECT_MCP_ALLOW_ANONYMOUS: 'true',
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.message).toMatch(/Invalid API key/);
@@ -50,7 +59,7 @@ describe('http-auth', () => {
   });
 
   it('accepts a real api key', () => {
-    const result = validateRequestApiKey(requestWithApiKey('sk_live_abc'));
+    const result = validateRequestApiKey(requestWithApiKey('sk_live_abc'), {});
     expect(result).toEqual({ ok: true, apiKey: 'sk_live_abc' });
   });
 });

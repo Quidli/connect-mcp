@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { loadConfig, loadHttpServerConfig, createHostedClientConfig } from '../src/config.js';
+import {
+  loadConfig,
+  loadHttpServerConfig,
+  createHostedClientConfig,
+  isAnonymousMcpAllowed,
+  loadAnonymousQuotaConfig,
+} from '../src/config.js';
 
 describe('loadConfig', () => {
   it('allows missing CONNECT_API_KEY and EVM_PRIVATE_KEY', () => {
@@ -61,13 +67,19 @@ describe('loadConfig', () => {
 });
 
 describe('createHostedClientConfig', () => {
-  it('always uses api-key auth', () => {
+  it('uses api-key auth when a key is provided', () => {
     const config = createHostedClientConfig('sk_live', 'https://api.test');
     expect(config).toEqual({
       baseUrl: 'https://api.test',
       apiKey: 'sk_live',
       x402EvmNetwork: 8453,
     });
+  });
+
+  it('omits api-key when unset', () => {
+    const config = createHostedClientConfig(undefined, 'https://api.test');
+    expect(config.apiKey).toBeUndefined();
+    expect(config.baseUrl).toBe('https://api.test');
   });
 });
 
@@ -90,5 +102,45 @@ describe('loadHttpServerConfig', () => {
       port: 9001,
       baseUrl: 'https://api.staging.connect.quid.li',
     });
+  });
+});
+
+describe('isAnonymousMcpAllowed', () => {
+  it('defaults to false', () => {
+    expect(isAnonymousMcpAllowed({})).toBe(false);
+  });
+
+  it('accepts true and 1', () => {
+    expect(isAnonymousMcpAllowed({ CONNECT_MCP_ALLOW_ANONYMOUS: 'true' })).toBe(true);
+    expect(isAnonymousMcpAllowed({ CONNECT_MCP_ALLOW_ANONYMOUS: '1' })).toBe(true);
+    expect(isAnonymousMcpAllowed({ CONNECT_MCP_ALLOW_ANONYMOUS: 'TRUE' })).toBe(true);
+  });
+});
+
+describe('loadAnonymousQuotaConfig', () => {
+  it('defaults to 50 rpm and 5 agent rpm', () => {
+    expect(loadAnonymousQuotaConfig({})).toEqual({
+      allowAnonymous: false,
+      rpm: 50,
+      agentRpm: 5,
+    });
+  });
+
+  it('reads overrides', () => {
+    expect(
+      loadAnonymousQuotaConfig({
+        CONNECT_MCP_ALLOW_ANONYMOUS: 'true',
+        CONNECT_MCP_ANON_RPM: '80',
+        CONNECT_MCP_ANON_AGENT_RPM: '3',
+      }),
+    ).toEqual({
+      allowAnonymous: true,
+      rpm: 80,
+      agentRpm: 3,
+    });
+  });
+
+  it('rejects invalid rpm', () => {
+    expect(() => loadAnonymousQuotaConfig({ CONNECT_MCP_ANON_RPM: '0' })).toThrow(/CONNECT_MCP_ANON_RPM/);
   });
 });

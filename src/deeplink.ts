@@ -2,7 +2,7 @@ import { CONNECT_MCP_API_KEY_PLACEHOLDER, CONNECT_MCP_REMOTE_URL } from './metad
 
 export interface CursorMcpRemoteConfig {
   url: string;
-  headers: {
+  headers?: {
     'x-api-key': string;
   };
 }
@@ -10,10 +10,14 @@ export interface CursorMcpRemoteConfig {
 export function buildCursorRemoteMcpConfig(
   apiKey: string = CONNECT_MCP_API_KEY_PLACEHOLDER,
 ): CursorMcpRemoteConfig {
+  const trimmed = apiKey.trim();
+  if (!trimmed) {
+    return { url: CONNECT_MCP_REMOTE_URL };
+  }
   return {
     url: CONNECT_MCP_REMOTE_URL,
     headers: {
-      'x-api-key': apiKey,
+      'x-api-key': trimmed,
     },
   };
 }

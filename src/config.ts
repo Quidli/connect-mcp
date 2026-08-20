@@ -63,14 +63,52 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ConnectClientC
   };
 }
 
-/** Hosted HTTP MCP: api-key from request header only. */
+const DEFAULT_ANON_RPM = 50;
+const DEFAULT_ANON_AGENT_RPM = 5;
+
+export interface AnonymousQuotaConfig {
+  allowAnonymous: boolean;
+  rpm: number;
+  agentRpm: number;
+}
+
+export function isAnonymousMcpAllowed(env: NodeJS.ProcessEnv = process.env): boolean {
+  const raw = env.CONNECT_MCP_ALLOW_ANONYMOUS?.trim().toLowerCase();
+  return raw === 'true' || raw === '1';
+}
+
+function parsePositiveInt(raw: string | undefined, fallback: number, name: string): number {
+  if (!raw?.trim()) {
+    return fallback;
+  }
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`${name} must be a positive integer (got "${raw}")`);
+  }
+  return value;
+}
+
+export function loadAnonymousQuotaConfig(env: NodeJS.ProcessEnv = process.env): AnonymousQuotaConfig {
+  return {
+    allowAnonymous: isAnonymousMcpAllowed(env),
+    rpm: parsePositiveInt(env.CONNECT_MCP_ANON_RPM, DEFAULT_ANON_RPM, 'CONNECT_MCP_ANON_RPM'),
+    agentRpm: parsePositiveInt(
+      env.CONNECT_MCP_ANON_AGENT_RPM,
+      DEFAULT_ANON_AGENT_RPM,
+      'CONNECT_MCP_ANON_AGENT_RPM',
+    ),
+  };
+}
+
+/** Hosted HTTP MCP: api-key from request header when present. */
 export function createHostedClientConfig(
-  apiKey: string,
+  apiKey: string | undefined,
   baseUrl: string,
 ): ConnectClientConfig {
+  const trimmed = apiKey?.trim() || undefined;
   return {
     baseUrl,
-    apiKey,
+    apiKey: trimmed,
     x402EvmNetwork: DEFAULT_X402_EVM_NETWORK,
   };
 }
