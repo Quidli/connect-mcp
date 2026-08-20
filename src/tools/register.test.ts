@@ -81,7 +81,6 @@ describe('registerTools', () => {
     expect(request).toHaveBeenCalledWith({
       method: 'GET',
       path: '/account/me',
-      requireApiKey: true,
     });
   });
 

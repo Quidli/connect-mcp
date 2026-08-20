@@ -100,7 +100,6 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
       client.request({
         method: 'GET',
         path: '/account/me',
-        requireApiKey: true,
       }),
   );
 
