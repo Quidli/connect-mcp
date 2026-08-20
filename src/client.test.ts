@@ -165,6 +165,64 @@ describe('ConnectClient', () => {
     expect(String(url)).toContain('ignoreFailedRecipients=true');
   });
 
+  it('omits x-api-key when no credentials are configured', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ status: 'completed' }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const client = new ConnectClient({
+      baseUrl: 'https://api.test',
+      x402EvmNetwork: 8453,
+    });
+    await client.request({ method: 'POST', path: '/lookup', body: { recipients: [] } });
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.headers).not.toHaveProperty('x-api-key');
+  });
+
+  it('rejects requireApiKey tools when CONNECT_API_KEY is unset', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const client = new ConnectClient({
+      baseUrl: 'https://api.test',
+      x402EvmNetwork: 8453,
+    });
+    const result = await client.request({
+      method: 'GET',
+      path: '/account/me',
+      requireApiKey: true,
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result.isError).toBe(true);
+    const first = result.content[0];
+    if (first?.type === 'text') {
+      expect(first.text).toContain('CONNECT_API_KEY');
+    }
+  });
+
+  it('rejects requireApiKey tools in x402 mode', async () => {
+    const client = new ConnectClient({
+      baseUrl: 'https://api.test',
+      evmPrivateKey: '0xabc',
+      x402EvmNetwork: 8453,
+    });
+    const result = await client.request({
+      method: 'POST',
+      path: '/drop',
+      requireApiKey: true,
+      body: {},
+    });
+
+    expect(paidFetchMock).not.toHaveBeenCalled();
+    expect(result.isError).toBe(true);
+  });
+
   it('uses paid fetch for authenticated requests in x402 mode', async () => {
     paidFetchMock.mockResolvedValue({
       ok: true,

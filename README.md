@@ -8,7 +8,7 @@ Use [Quidli Connect](https://connect.quid.li) from Cursor, Claude Desktop, or an
 |                 | **Hosted** (`mcp.connect.quid.li`)                                                   | **Local** (`npx @quidli/connect-mcp`)                                                      |
 | --------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
 | **Setup**       | Add a URL in MCP settings                                                            | Run a local process via `npx`                                                              |
-| **Auth**        | Connect API key only                                                                 | API key **or** x402 pay-per-call                                                           |
+| **Auth**        | Connect API key only                                                                 | API key, x402 pay-per-call, or none for lookup/scores/agent                                |
 | **Pros**        | No install; always on Quidli infrastructure; simplest setup                          | Wallet private key never leaves your machine; pay per call with USDC instead of an API key |
 | **Cons**        | Requires a Connect API key; no pay-per-call billing                                  | Requires Node.js 20+; `npx` may download the package on first run                          |
 | **Limitations** | Cannot use x402 / wallet auth — do **not** send a private key to the hosted endpoint | x402 mode needs USDC on Base (mainnet `8453`); `connect_drop` requires an API key          |
@@ -152,6 +152,26 @@ No API key. Authenticated calls pay automatically when the API returns HTTP 402.
 
 Use `84532` for Base Sepolia when pointing at a staging API.
 
+#### Option C — no credentials (lookup / scores / agent)
+
+The MCP process starts without `CONNECT_API_KEY` or `EVM_PRIVATE_KEY`. `connect_lookup`, `connect_scores_*`, `connect_agent_prompt`, and `connect_get_price` call the API without auth. That succeeds when x402 is disabled (price `0`, typical for local). On production with x402 enabled, those tools return HTTP 402 until you set a key or wallet.
+
+`connect_me`, `connect_drop`, and `connect_drop_balance` still require `CONNECT_API_KEY`.
+
+```json
+{
+  "mcpServers": {
+    "quidli-connect": {
+      "command": "npx",
+      "args": ["-y", "@quidli/connect-mcp"],
+      "env": {
+        "CONNECT_API_BASE_URL": "http://127.0.0.1:3011"
+      }
+    }
+  }
+}
+```
+
 ### Claude Desktop
 
 1. Open **Claude → Settings → Developer → Edit Config** (enable Developer mode first if you do not see it).
@@ -199,7 +219,7 @@ Use `84532` for Base Sepolia when pointing at a staging API.
 
 If both `CONNECT_API_KEY` and `EVM_PRIVATE_KEY` are set, the API key is used.
 
-At least one of `CONNECT_API_KEY` or `EVM_PRIVATE_KEY` is required for local mode.
+Credentials are optional in local mode. Without either variable, lookup/scores/agent still work when the API does not charge x402. `connect_me` and Smart Send tools require `CONNECT_API_KEY`.
 
 ---
 
@@ -214,6 +234,7 @@ At least one of `CONNECT_API_KEY` or `EVM_PRIVATE_KEY` is required for local mod
 | `connect_scores_batch`       | Batch scores for accounts or usernames                    |
 | `connect_scores_by_account`  | Scores for one linked account                             |
 | `connect_scores_by_username` | Scores by Connect username                                |
+| `connect_me`                 | Profile, scores, and linked accounts for the API key owner — **API key only** |
 | `connect_drop`               | Smart Send (batch token transfer) — **API key only**      |
 | `connect_drop_balance`       | Smart Send wallet balances on a chain — **API key only**  |
 | `connect_agent_prompt`       | Natural-language agent for recipients discovery           |

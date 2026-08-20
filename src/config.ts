@@ -45,17 +45,15 @@ export function loadHttpServerConfig(env: NodeJS.ProcessEnv = process.env): Http
   return { host, port, baseUrl: loadBaseUrl(env) };
 }
 
-/** Stdio MCP: CONNECT_API_KEY and/or EVM_PRIVATE_KEY (at least one required). */
+/**
+ * Stdio MCP: credentials are optional.
+ * Lookup/scores/agent work without auth when the API allows it (x402 price 0)
+ * or with CONNECT_API_KEY / EVM_PRIVATE_KEY. /account/me and /drop require an API key.
+ */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): ConnectClientConfig {
   const apiKey = env.CONNECT_API_KEY?.trim() || undefined;
   const evmPrivateKey = normalizeEvmPrivateKey(env.EVM_PRIVATE_KEY);
   const x402EvmNetwork = parseX402EvmNetwork(env);
-
-  if (!apiKey && !evmPrivateKey) {
-    throw new Error(
-      'CONNECT_API_KEY or EVM_PRIVATE_KEY is required. Get an API key at https://connect.quid.li (Enable API access), or set EVM_PRIVATE_KEY for pay-per-call x402.',
-    );
-  }
 
   return {
     baseUrl: loadBaseUrl(env),

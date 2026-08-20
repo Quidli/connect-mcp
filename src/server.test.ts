@@ -30,11 +30,11 @@ describe('main', () => {
 
   it('fails before connecting when loadConfig throws', async () => {
     loadConfigMock.mockImplementation(() => {
-      throw new Error('CONNECT_API_KEY or EVM_PRIVATE_KEY is required');
+      throw new Error('CONNECT_X402_EVM_NETWORK must be a positive integer');
     });
 
     const { main } = await import('./server.js');
-    await expect(main()).rejects.toThrow(/CONNECT_API_KEY or EVM_PRIVATE_KEY is required/);
+    await expect(main()).rejects.toThrow(/CONNECT_X402_EVM_NETWORK/);
     expect(connectMock).not.toHaveBeenCalled();
   });
 

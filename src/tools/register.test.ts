@@ -16,7 +16,7 @@ function createMockServer(): { server: McpServer; handlers: Map<string, ToolHand
 }
 
 describe('registerTools', () => {
-  it('registers exactly 9 tools with no feedback route', () => {
+  it('registers exactly 10 tools with no feedback route', () => {
     const { server, handlers } = createMockServer();
     const client = { request: vi.fn() } as unknown as ConnectClient;
 
@@ -71,6 +71,20 @@ describe('registerTools', () => {
     });
   });
 
+  it('connect_me GETs /account/me with auth', async () => {
+    const { server, handlers } = createMockServer();
+    const request = vi.fn().mockResolvedValue({ content: [] });
+    registerTools(server, { request } as unknown as ConnectClient);
+
+    await handlers.get('connect_me')!({});
+
+    expect(request).toHaveBeenCalledWith({
+      method: 'GET',
+      path: '/account/me',
+      requireApiKey: true,
+    });
+  });
+
   it('connect_drop_balance GETs /drop/balance with chainId query', async () => {
     const { server, handlers } = createMockServer();
     const request = vi.fn().mockResolvedValue({ content: [] });
@@ -81,6 +95,7 @@ describe('registerTools', () => {
     expect(request).toHaveBeenCalledWith({
       method: 'GET',
       path: '/drop/balance',
+      requireApiKey: true,
       query: { chainId: '8453' },
     });
   });
@@ -100,6 +115,7 @@ describe('registerTools', () => {
     expect(request).toHaveBeenCalledWith({
       method: 'POST',
       path: '/drop',
+      requireApiKey: true,
       body: {
         idempotencyKey: '550e8400-e29b-41d4-a716-446655440000',
         chainId: 8453,

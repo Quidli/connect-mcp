@@ -2,14 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { loadConfig, loadHttpServerConfig, createHostedClientConfig } from '../src/config.js';
 
 describe('loadConfig', () => {
-  it('throws when neither CONNECT_API_KEY nor EVM_PRIVATE_KEY is set', () => {
-    expect(() => loadConfig({})).toThrow(/CONNECT_API_KEY or EVM_PRIVATE_KEY is required/);
+  it('allows missing CONNECT_API_KEY and EVM_PRIVATE_KEY', () => {
+    const config = loadConfig({});
+    expect(config.apiKey).toBeUndefined();
+    expect(config.evmPrivateKey).toBeUndefined();
+    expect(config.baseUrl).toBe('https://api.connect.quid.li');
   });
 
-  it('throws when CONNECT_API_KEY is whitespace-only and no EVM key', () => {
-    expect(() => loadConfig({ CONNECT_API_KEY: '   ' })).toThrow(
-      /CONNECT_API_KEY or EVM_PRIVATE_KEY is required/,
-    );
+  it('treats whitespace-only CONNECT_API_KEY as unset', () => {
+    const config = loadConfig({ CONNECT_API_KEY: '   ' });
+    expect(config.apiKey).toBeUndefined();
+    expect(config.evmPrivateKey).toBeUndefined();
   });
 
   it('defaults CONNECT_API_BASE_URL to production with api key', () => {

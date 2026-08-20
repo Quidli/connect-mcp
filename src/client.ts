@@ -12,6 +12,8 @@ export interface ConnectRequestOptions {
   method: HttpMethod;
   path: string;
   authenticated?: boolean;
+  /** Fail before calling the API when CONNECT_API_KEY is unset (Smart Send /me). */
+  requireApiKey?: boolean;
   body?: unknown;
   query?: Record<string, string | undefined>;
   timeoutMs?: number;
@@ -22,7 +24,7 @@ export class ConnectClient {
   private readonly paidFetch?: typeof fetch;
 
   constructor(private readonly config: ConnectClientConfig) {
-    this.authMode = config.apiKey ? 'api-key' : 'x402';
+    this.authMode = config.evmPrivateKey && !config.apiKey ? 'x402' : 'api-key';
     if (!config.apiKey && config.evmPrivateKey) {
       this.paidFetch = createPaidFetch(config.evmPrivateKey, config.x402EvmNetwork);
     }
@@ -38,6 +40,12 @@ export class ConnectClient {
   async request(options: ConnectRequestOptions): Promise<CallToolResult> {
     const { method, path, body, query, timeoutMs } = options;
     const authenticated = options.authenticated ?? true;
+
+    if (options.requireApiKey && !this.config.apiKey) {
+      return errorResult(
+        'This tool requires CONNECT_API_KEY. Get a key at https://connect.quid.li (Enable API access). x402 wallet auth is not supported for this action.',
+      );
+    }
 
     const url = new URL(path, `${this.config.baseUrl}/`);
     if (query) {

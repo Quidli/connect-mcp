@@ -20,6 +20,7 @@ export const CONNECT_MCP_TOOL_NAMES = [
   'connect_scores_batch',
   'connect_scores_by_account',
   'connect_scores_by_username',
+  'connect_me',
   'connect_drop',
   'connect_drop_balance',
   'connect_agent_prompt',
@@ -92,6 +93,18 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
   );
 
   server.tool(
+    'connect_me',
+    'Get the Connect profile, scores, and all linked accounts for the API key owner. Use to identify which user the key belongs to.',
+    {},
+    async () =>
+      client.request({
+        method: 'GET',
+        path: '/account/me',
+        requireApiKey: true,
+      }),
+  );
+
+  server.tool(
     'connect_drop',
     'Execute a Smart Send (batch token transfer). Returns 201 when submitted or 202 when recipients still processing — retry with same idempotencyKey.',
     dropInputSchema,
@@ -100,6 +113,7 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
         method: 'POST',
         path: '/drop',
         body,
+        requireApiKey: true,
         query:
           ignoreFailedRecipients === true
             ? { ignoreFailedRecipients: 'true' }
@@ -115,6 +129,7 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
       client.request({
         method: 'GET',
         path: '/drop/balance',
+        requireApiKey: true,
         query: { chainId: String(chainId) },
       }),
   );
