@@ -5,7 +5,7 @@ export const CONNECT_MCP_REMOTE_URL = 'https://mcp.connect.quid.li';
 export const CONNECT_MCP_SERVER_INFO = {
   name: 'quidli-connect',
   title: 'Quidli Connect',
-  version: '0.1.0',
+  version: '0.4.0',
   websiteUrl: 'https://connect.quid.li',
   icons: [
     {
