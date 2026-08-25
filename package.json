@@ -1,22 +1,25 @@
 {
   "name": "@quidli/connect-mcp",
-  "version": "0.4.0",
-  "description": "MCP server for Quidli Connect product APIs",
+  "version": "0.5.1",
+  "description": "Identity and reputation for AI agents: resolve social handles to wallet addresses, check reputation scores, and send tokens from any MCP client.",
   "keywords": [
     "mcp",
     "model-context-protocol",
-    "quidli",
-    "connect",
-    "web3",
-    "identity",
     "ai",
-    "agent"
+    "agent",
+    "identity",
+    "identity-resolution",
+    "reputation",
+    "payments",
+    "wallet",
+    "usdc",
+    "farcaster",
+    "x402"
   ],
-  "homepage": "https://connect.quid.li",
+  "homepage": "https://quidli.xyz",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Quidli/sns-backend.git",
-    "directory": "packages/connect-mcp"
+    "url": "git+https://github.com/Quidli/connect-mcp.git"
   },
   "author": {
     "name": "Quidli",
@@ -67,5 +70,9 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public"
+  },
+  "mcpName": "io.github.quidli/connect-mcp",
+  "bugs": {
+    "url": "https://github.com/Quidli/connect-mcp/issues"
   }
 }
