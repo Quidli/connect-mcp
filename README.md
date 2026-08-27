@@ -2,6 +2,8 @@
 
 Identity and reputation for agents. Resolve a social handle to a wallet, check reputation, and send tokens — from Cursor, Claude Desktop, Claude Code, or any MCP-compatible client.
 
+Public repository: [github.com/Quidli/connect-mcp](https://github.com/Quidli/connect-mcp)
+
 ## Try it in one command
 
 No API key required.

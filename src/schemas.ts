@@ -47,7 +47,9 @@ export const scoresBatchInputSchema = {
         'ethos_twitter_reputation',
         'ethos_wallet_reputation',
       ]),
-      minScore: z.number(),
+      minScore: z
+        .number()
+        .describe('quidli_score: 0–100; neynar/lens: 0–1; ethos_twitter/wallet: 0–2800'),
     })
     .optional(),
 };

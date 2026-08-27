@@ -60,7 +60,7 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
 
   server.tool(
     'connect_scores_batch',
-    'Batch scores for linked accounts or Connect usernames. Optional filter excludes users below minScore.',
+    'Batch scores for linked accounts or Connect usernames. Optional filter excludes users below minScore (quidli 0–100, neynar/lens 0–1, ethos 0–2800).',
     scoresBatchInputSchema,
     async ({ users, filter }) =>
       client.request({
