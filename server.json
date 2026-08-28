@@ -1,11 +1,11 @@
 {
   "name": "io.github.quidli/connect-mcp",
   "description": "Identity and reputation for AI agents.",
-  "version": "0.5.1",
+  "version": "0.5.3",
   "packages": [{
     "registryType": "npm",
     "identifier": "@quidli/connect-mcp",
-    "version": "0.5.1",
+    "version": "0.5.3",
     "transport": { "type": "stdio" }
   }],
   "remotes": [{ "type": "streamable-http", "url": "https://mcp.connect.quid.li" }]
