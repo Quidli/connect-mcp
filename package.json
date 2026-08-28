@@ -4,9 +4,12 @@
   "description": "Identity and reputation for AI agents: resolve social handles to wallet addresses, check reputation scores, and send tokens from any MCP client.",
   "keywords": [
     "mcp",
+    "mcp-server",
     "model-context-protocol",
     "ai",
     "agent",
+    "web3-agent",
+    "agent-payments",
     "identity",
     "identity-resolution",
     "reputation",
