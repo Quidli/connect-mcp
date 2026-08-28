@@ -141,6 +141,17 @@ Without a key, `initialize` / `tools/list` always succeed. Anonymous `tools/call
 
 ---
 
+## Smithery
+
+If you already use [Smithery](https://smithery.ai/servers/quidli/connect), it will handle auth and sessions for you. Requires a Smithery account.
+
+```bash
+npx smithery login
+npx smithery mcp add quidli/connect
+```
+
+---
+
 ## Local (stdio)
 
 Best if you want pay-per-call with a wallet, or prefer credentials in a local env file.
