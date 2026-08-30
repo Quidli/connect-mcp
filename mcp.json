@@ -1,0 +1,20 @@
+{
+  "name": "io.github.quidli/connect-mcp",
+  "description": "Identity and reputation for AI agents: resolve social handles to wallet addresses, check reputation scores, and send tokens from any MCP client.",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@quidli/connect-mcp",
+      "version": "0.5.3",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.connect.quid.li"
+    }
+  ]
+}
