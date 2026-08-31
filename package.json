@@ -1,6 +1,6 @@
 {
   "name": "@quidli/connect-mcp",
-  "version": "0.5.4",
+  "version": "0.5.6",
   "description": "Identity and reputation for AI agents: resolve social handles to wallet addresses, check reputation scores, and send tokens from any MCP client.",
   "keywords": [
     "mcp",
