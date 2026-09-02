@@ -280,6 +280,67 @@ Credentials are optional in local mode. Without either variable, lookup/scores/a
 
 ---
 
+## Troubleshooting
+
+### `npx` hangs with no output when run from a background service
+
+If you're launching `@quidli/connect-mcp` via `npx` from inside a background
+process manager -- a macOS `launchd` agent, a systemd unit, a supervisor, or
+any client config running without a normal interactive shell -- it can hang
+**indefinitely with zero output and no error**. This isn't a crash; `npx` is
+stuck resolving `PATH` in an environment that doesn't provide the same shell
+initialization an interactive terminal gets.
+
+**Workaround:** if you have [Bun](https://bun.sh) installed, use `bunx`
+instead of `npx`. It performs the same job -- running the package without a
+local install -- but doesn't hit this hang in restricted-`PATH` environments.
+
+```json
+{
+  "mcpServers": {
+    "quidli-connect": {
+      "command": "bunx",
+      "args": ["-y", "@quidli/connect-mcp"],
+      "env": {
+        "CONNECT_API_KEY": "your-api-key"
+      }
+    }
+  }
+}
+```
+
+If you're spawning the process yourself (rather than through a client's MCP
+config) and want to be resilient to `bunx` not being on `PATH` either,
+resolve it by absolute path first:
+
+```ts
+import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+
+const BUNX_PATH = (() => {
+  const candidate = join(homedir(), ".bun", "bin", "bunx");
+  return existsSync(candidate) ? candidate : "bunx";
+})();
+
+const proc = spawn(BUNX_PATH, ["-y", "@quidli/connect-mcp"], {
+  stdio: ["pipe", "pipe", "pipe"],
+});
+```
+
+This isn't a general claim that Bun is better than npm -- it's a targeted fix
+for one specific, reproducible failure mode when `npx` is spawned outside an
+interactive shell.
+
+### Wrong environment variable name for the API key
+
+Double-check you're setting `CONNECT_API_KEY`, not `API_KEY` -- the server
+only reads `CONNECT_API_KEY`, and a mismatch here fails silently: your calls
+will run in anonymous/unauthenticated mode instead of erroring, which can
+look like a working-but-oddly-limited connection rather than a config
+mistake.
+
 ## Tools
 
 
