@@ -145,6 +145,15 @@ Requires **Node.js 20+** for the bridge. Restart Claude Desktop after saving. Yo
 
 Without a key, `initialize` / `tools/list` always succeed. Anonymous `tools/call` share a global quota (HTTP **429** when exceeded — get a key for higher limits). Placeholder keys still return **401**.
 
+### Grok
+
+1. Go to [grok.com/connectors](https://grok.com/connectors) and select **Custom**.
+2. Enter the server URL: `https://mcp.connect.quid.li`
+
+This gives Grok access to the anonymous-tier tools -- lookup, scores, agent, and price -- under the shared quota.
+
+**Current limitation:** Grok's custom connector UI does not currently support attaching an API key or custom header. That means `connect_me`, `connect_drop`, and `connect_drop_balance` (all **API key only**) are not usable through Grok yet -- calls to them will return an unauthorized error. This isn't a `connect-mcp` limitation; it's Grok's custom-connector setup not exposing an auth field at this time.
+
 ---
 
 ## Smithery
