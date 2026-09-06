@@ -56,7 +56,7 @@ Lookup, scores, agent and price run without a key under a shared anonymous quota
 |                 | **Hosted** (`mcp.connect.quid.li`)                                                   | **Local** (`npx @quidli/connect-mcp`)                                                      |
 | --------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
 | **Setup**       | Add a URL in MCP settings                                                            | Run a local process via `npx`                                                              |
-| **Auth**        | Optional API key. Without a key: lookup/scores/price under a shared anonymous quota | API key, x402 pay-per-call, or none for lookup/scores                                |
+| **Auth**        | Optional API key. Without a key: lookup/scores under a shared anonymous quota; price/chains are public | API key, x402 pay-per-call, or none for lookup/scores                                |
 | **Pros**        | No install; try without a key; always on Quidli infrastructure                       | Wallet private key never leaves your machine; pay per call with USDC instead of an API key |
 | **Cons**        | Anonymous traffic shares a global rate limit; no pay-per-call billing                | Requires Node.js 20+; `npx` may download the package on first run                          |
 | **Limitations** | Cannot use x402 / wallet auth — do **not** send a private key to the hosted endpoint | x402 mode needs USDC on Base (mainnet `8453`); `connect_drop` requires an API key          |
@@ -220,7 +220,7 @@ Use `84532` for Base Sepolia when pointing at a staging API.
 
 #### Option C — no credentials (lookup / scores)
 
-The MCP process starts without `CONNECT_API_KEY` or `EVM_PRIVATE_KEY`. `connect_lookup`, `connect_scores_*`, and `connect_get_price` call the API without auth. That succeeds when x402 is disabled (price `0`, typical for local). On production with x402 enabled, those tools return HTTP 402 until you set a key or wallet.
+The MCP process starts without `CONNECT_API_KEY` or `EVM_PRIVATE_KEY`. `connect_lookup`, `connect_scores_*`, `connect_get_price`, and `connect_get_chains` call the API without auth. That succeeds when x402 is disabled (price `0`, typical for local). On production with x402 enabled, those tools return HTTP 402 until you set a key or wallet.
 
 `connect_me`, `connect_drop`, and `connect_drop_balance` still require `CONNECT_API_KEY`.
 
@@ -356,6 +356,7 @@ mistake.
 | Tool                         | What it does                                              |
 | ---------------------------- | --------------------------------------------------------- |
 | `connect_get_price`          | List reference prices (no auth)                           |
+| `connect_get_chains`         | List supported chains and feature compatibility (no auth) |
 | `connect_lookup`             | Resolve social identities to EVM and SOL wallet addresses |
 | `connect_lookup_exposed`     | List platforms a recipient has exposed on Connect         |
 | `connect_scores_batch`       | Batch scores for accounts or usernames                    |

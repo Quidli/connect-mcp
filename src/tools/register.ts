@@ -12,6 +12,7 @@ import {
 
 export const CONNECT_MCP_TOOL_NAMES = [
   'connect_get_price',
+  'connect_get_chains',
   'connect_lookup',
   'connect_lookup_exposed',
   'connect_scores_batch',
@@ -28,6 +29,13 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
     'Get public x402 list prices for lookup and scores (reference only; live paywall amounts are in 402 responses).',
     {},
     async () => client.request({ method: 'GET', path: '/price', authenticated: false }),
+  );
+
+  server.tool(
+    'connect_get_chains',
+    'List product chains with per-feature compatibility. lookup is true for EVM catalog chains and Solana; drop is true only for Smart Send EVM chains (use those chainIds for connect_drop / connect_drop_balance).',
+    {},
+    async () => client.request({ method: 'GET', path: '/chains', authenticated: false }),
   );
 
   server.tool(

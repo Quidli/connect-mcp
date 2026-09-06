@@ -1,7 +1,7 @@
 import type { AnonymousQuotaConfig } from './config.js';
 import { getJsonRpcMethod, getJsonRpcToolName } from './jsonrpc.js';
 
-export const ANON_QUOTA_EXEMPT_TOOLS = new Set(['connect_get_price']);
+export const ANON_QUOTA_EXEMPT_TOOLS = new Set(['connect_get_price', 'connect_get_chains']);
 export const ANON_AGENT_TOOL = 'connect_agent_prompt';
 
 const GLOBAL_QUOTA_MESSAGE =
