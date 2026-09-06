@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const recipientTypeSchema = z.enum([
+const lookupSocialTypeSchema = z.enum([
   'email',
   'phone',
   'telegram',
@@ -10,9 +10,15 @@ const recipientTypeSchema = z.enum([
   'github',
   'linkedin',
   'slack',
+]);
+
+const recipientTypeSchema = z.enum([
+  ...lookupSocialTypeSchema.options,
   'wallet',
   'username',
 ]);
+
+const exposureRecipientTypeSchema = recipientTypeSchema;
 
 /** Unified recipient — API validates fully; MCP forwards JSON. */
 export const linkedAccountSchema = z
@@ -23,16 +29,32 @@ export const linkedAccountSchema = z
   })
   .passthrough();
 
+const lookupRecipientSchema = z
+  .object({
+    type: lookupSocialTypeSchema,
+    id: z.string().optional(),
+    username: z.string().optional(),
+  })
+  .passthrough();
+
+const exposureRecipientSchema = z
+  .object({
+    type: exposureRecipientTypeSchema,
+    id: z.string().optional(),
+    username: z.string().optional(),
+  })
+  .passthrough();
+
 export const lookupInputSchema = {
   recipients: z
-    .array(linkedAccountSchema)
+    .array(lookupRecipientSchema)
     .min(1)
     .describe('Recipients to resolve to EVM/Solana wallets'),
 };
 
 export const lookupExposedInputSchema = {
-  recipient: linkedAccountSchema.describe(
-    'Recipient whose exposed linked accounts and Connect profile should be listed',
+  recipient: exposureRecipientSchema.describe(
+    'Social identity, exposed wallet (EVM/Solana/smart wallet), or Connect username whose exposed linked accounts and Connect profile should be listed',
   ),
 };
 
@@ -80,14 +102,29 @@ export const dropBalanceInputSchema = {
 
 export const dropInputSchema = {
   idempotencyKey: z.string().uuid(),
-  chainId: z.number().int(),
-  tokenContract: z.string().nullable().optional(),
-  recipients: z.array(linkedAccountSchema).min(1),
-  amountInWeiPerRecipient: z.string().optional().nullable(),
-  ignoreFailedRecipients: z.boolean().optional(),
-};
-
-export const agentPromptInputSchema = {
-  prompt: z.string().min(1).max(4000),
-  sessionId: z.string().uuid().optional(),
+  chainId: z.number().int().describe('EVM chain ID (Smart Send supported chains only)'),
+  tokenContract: z
+    .string()
+    .nullable()
+    .optional()
+    .describe(
+      'ERC-20 contract address. Omit or null for the chain native token (ETH, POL, AVAX). Do not use the zero address.',
+    ),
+  recipients: z
+    .array(linkedAccountSchema)
+    .min(1)
+    .describe(
+      'Wallet or social recipients (all wallet or all social, no mix). Optional amountInWei per recipient uses the same smallest-unit rules as amountInWeiPerRecipient.',
+    ),
+  amountInWeiPerRecipient: z
+    .string()
+    .optional()
+    .nullable()
+    .describe(
+      'Uniform amount in smallest units (wei). Native ETH uses 18 decimals; ERC-20 uses token decimals from connect_drop_balance (USDC usually 6). Omit when setting amountInWei on each recipient.',
+    ),
+  ignoreFailedRecipients: z
+    .boolean()
+    .optional()
+    .describe(    'When true, send to recipients that resolved successfully and skip failed lookups.'),
 };

@@ -56,7 +56,7 @@ Lookup, scores, agent and price run without a key under a shared anonymous quota
 |                 | **Hosted** (`mcp.connect.quid.li`)                                                   | **Local** (`npx @quidli/connect-mcp`)                                                      |
 | --------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
 | **Setup**       | Add a URL in MCP settings                                                            | Run a local process via `npx`                                                              |
-| **Auth**        | Optional API key. Without a key: lookup/scores/agent/price under a shared anonymous quota | API key, x402 pay-per-call, or none for lookup/scores/agent                                |
+| **Auth**        | Optional API key. Without a key: lookup/scores/price under a shared anonymous quota | API key, x402 pay-per-call, or none for lookup/scores                                |
 | **Pros**        | No install; try without a key; always on Quidli infrastructure                       | Wallet private key never leaves your machine; pay per call with USDC instead of an API key |
 | **Cons**        | Anonymous traffic shares a global rate limit; no pay-per-call billing                | Requires Node.js 20+; `npx` may download the package on first run                          |
 | **Limitations** | Cannot use x402 / wallet auth — do **not** send a private key to the hosted endpoint | x402 mode needs USDC on Base (mainnet `8453`); `connect_drop` requires an API key          |
@@ -68,7 +68,7 @@ Get a Connect API key at [connect.quid.li](https://connect.quid.li) → **Enable
 
 ## Hosted (recommended)
 
-Zero local setup. Lookup, scores, agent, and price work without an API key (shared anonymous quota). Add a key for higher limits, your profile (`connect_me`), and Smart Send.
+Zero local setup. Lookup, scores, and price work without an API key (shared anonymous quota). Add a key for higher limits, your profile (`connect_me`), and Smart Send.
 
 ### Cursor
 
@@ -218,9 +218,9 @@ No API key. Authenticated calls pay automatically when the API returns HTTP 402.
 
 Use `84532` for Base Sepolia when pointing at a staging API.
 
-#### Option C — no credentials (lookup / scores / agent)
+#### Option C — no credentials (lookup / scores)
 
-The MCP process starts without `CONNECT_API_KEY` or `EVM_PRIVATE_KEY`. `connect_lookup`, `connect_scores_*`, `connect_agent_prompt`, and `connect_get_price` call the API without auth. That succeeds when x402 is disabled (price `0`, typical for local). On production with x402 enabled, those tools return HTTP 402 until you set a key or wallet.
+The MCP process starts without `CONNECT_API_KEY` or `EVM_PRIVATE_KEY`. `connect_lookup`, `connect_scores_*`, and `connect_get_price` call the API without auth. That succeeds when x402 is disabled (price `0`, typical for local). On production with x402 enabled, those tools return HTTP 402 until you set a key or wallet.
 
 `connect_me`, `connect_drop`, and `connect_drop_balance` still require `CONNECT_API_KEY`.
 
@@ -285,7 +285,7 @@ The MCP process starts without `CONNECT_API_KEY` or `EVM_PRIVATE_KEY`. `connect_
 
 If both `CONNECT_API_KEY` and `EVM_PRIVATE_KEY` are set, the API key is used.
 
-Credentials are optional in local mode. Without either variable, lookup/scores/agent still work when the API does not charge x402. `connect_me` and Smart Send tools require `CONNECT_API_KEY`.
+Credentials are optional in local mode. Without either variable, lookup/scores still work when the API does not charge x402. `connect_me` and Smart Send tools require `CONNECT_API_KEY`.
 
 ---
 
@@ -364,7 +364,6 @@ mistake.
 | `connect_me`                 | API key owner profile, scores, and linked accounts — **API key only** |
 | `connect_drop`               | Smart Send (batch token transfer) — **API key only**      |
 | `connect_drop_balance`       | Smart Send wallet balances on a chain — **API key only**  |
-| `connect_agent_prompt`       | Natural-language agent for recipients discovery           |
 
 
 Ask your client to use these tools when you need Connect data or actions.

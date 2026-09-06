@@ -1,7 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ConnectClient } from '../client.js';
 import {
-  agentPromptInputSchema,
   dropBalanceInputSchema,
   dropInputSchema,
   lookupExposedInputSchema,
@@ -10,8 +9,6 @@ import {
   scoresByAccountInputSchema,
   scoresByUsernameInputSchema,
 } from '../schemas.js';
-
-const AGENT_TIMEOUT_MS = 65_000;
 
 export const CONNECT_MCP_TOOL_NAMES = [
   'connect_get_price',
@@ -23,13 +20,12 @@ export const CONNECT_MCP_TOOL_NAMES = [
   'connect_me',
   'connect_drop',
   'connect_drop_balance',
-  'connect_agent_prompt',
 ] as const;
 
 export function registerTools(server: McpServer, client: ConnectClient): void {
   server.tool(
     'connect_get_price',
-    'Get public x402 list prices for lookup, scores, and agent (reference only; live paywall amounts are in 402 responses).',
+    'Get public x402 list prices for lookup and scores (reference only; live paywall amounts are in 402 responses).',
     {},
     async () => client.request({ method: 'GET', path: '/price', authenticated: false }),
   );
@@ -48,7 +44,7 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
 
   server.tool(
     'connect_lookup_exposed',
-    'List platforms a recipient has exposed on Connect, with enriched profile, scores, and wallet addresses. May require x402 payment when the profile owner charges for lookups.',
+    'List platforms a recipient has exposed on Connect, with enriched profile, scores, and wallet addresses. Recipient may be a social account, an exposed wallet (EVM/Solana/smart wallet), or a Connect username. May require x402 payment when the profile owner charges for lookups.',
     lookupExposedInputSchema,
     async ({ recipient }) =>
       client.request({
@@ -105,7 +101,7 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
 
   server.tool(
     'connect_drop',
-    'Execute a Smart Send (batch token transfer). Returns 201 when submitted or 202 when recipients still processing — retry with same idempotencyKey.',
+    'Execute a Smart Send (batch native or ERC-20 transfer). Omit tokenContract or set it to null for the chain native token (ETH on 1/8453/10/42161/480, POL on 137, AVAX on 43114); pass the ERC-20 contract address otherwise — do not use the zero address. Amounts are smallest-unit integer strings; use connect_drop_balance decimals (native ETH = 18, USDC usually 6). Returns 201 when submitted or 202 when recipients still processing — retry with the same idempotencyKey.',
     dropInputSchema,
     async ({ ignoreFailedRecipients, ...body }) =>
       client.request({
@@ -130,22 +126,6 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
         path: '/drop/balance',
         requireApiKey: true,
         query: { chainId: String(chainId) },
-      }),
-  );
-
-  server.tool(
-    'connect_agent_prompt',
-    'Natural-language agent turn for Farcaster/Lens cohort discovery. Blocking up to 60s. Omit sessionId to start; include to continue. Do not send requester.',
-    agentPromptInputSchema,
-    async ({ prompt, sessionId }) =>
-      client.request({
-        method: 'POST',
-        path: '/agent',
-        body: {
-          prompt,
-          ...(sessionId ? { sessionId } : {}),
-        },
-        timeoutMs: AGENT_TIMEOUT_MS,
       }),
   );
 }

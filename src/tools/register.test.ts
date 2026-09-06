@@ -16,13 +16,14 @@ function createMockServer(): { server: McpServer; handlers: Map<string, ToolHand
 }
 
 describe('registerTools', () => {
-  it('registers exactly 10 tools with no feedback route', () => {
+  it('registers exactly 9 tools without agent routes', () => {
     const { server, handlers } = createMockServer();
     const client = { request: vi.fn() } as unknown as ConnectClient;
 
     registerTools(server, client);
 
     expect([...handlers.keys()].sort()).toEqual([...CONNECT_MCP_TOOL_NAMES].sort());
+    expect(handlers.has('connect_agent_prompt')).toBe(false);
     expect(handlers.has('connect_agent_feedback')).toBe(false);
     expect(handlers.has('connect_lookup_exposed')).toBe(true);
   });
@@ -122,30 +123,6 @@ describe('registerTools', () => {
       },
       query: { ignoreFailedRecipients: 'true' },
     });
-  });
-
-  it('connect_agent_prompt omits requester and sets timeout', async () => {
-    const { server, handlers } = createMockServer();
-    const request = vi.fn().mockResolvedValue({ content: [] });
-    registerTools(server, { request } as unknown as ConnectClient);
-
-    await handlers.get('connect_agent_prompt')!({
-      prompt: 'my followers',
-      sessionId: '550e8400-e29b-41d4-a716-446655440001',
-    });
-
-    expect(request).toHaveBeenCalledWith({
-      method: 'POST',
-      path: '/agent',
-      body: {
-        prompt: 'my followers',
-        sessionId: '550e8400-e29b-41d4-a716-446655440001',
-      },
-      timeoutMs: 65_000,
-    });
-
-    const body = (request.mock.calls[0]?.[0] as { body: Record<string, unknown> }).body;
-    expect(body).not.toHaveProperty('requester');
   });
 
   it('connect_scores_by_account encodes path segments', async () => {
