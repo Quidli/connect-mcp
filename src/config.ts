@@ -47,7 +47,7 @@ export function loadHttpServerConfig(env: NodeJS.ProcessEnv = process.env): Http
 
 /**
  * Stdio MCP: credentials are optional.
- * Lookup/scores/agent work without auth when the API allows it (x402 price 0)
+ * Lookup/scores work without auth when the API allows it (x402 price 0)
  * or with CONNECT_API_KEY / EVM_PRIVATE_KEY. /account/me and /drop require an API key.
  */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): ConnectClientConfig {
