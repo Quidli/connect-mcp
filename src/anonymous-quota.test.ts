@@ -42,6 +42,15 @@ describe('AnonymousToolQuota', () => {
     }
   });
 
+  it('does not count connect_get_chains', () => {
+    const limiter = quota();
+    for (let i = 0; i < 5; i += 1) {
+      expect(
+        limiter.consume({ method: 'tools/call', params: { name: 'connect_get_chains' } }).allowed,
+      ).toBe(true);
+    }
+  });
+
   it('counts lookup against the global cap', () => {
     const limiter = quota();
     const lookup = { method: 'tools/call', params: { name: 'connect_lookup' } };

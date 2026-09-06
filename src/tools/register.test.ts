@@ -16,7 +16,7 @@ function createMockServer(): { server: McpServer; handlers: Map<string, ToolHand
 }
 
 describe('registerTools', () => {
-  it('registers exactly 9 tools without agent routes', () => {
+  it('registers exactly 10 tools without agent routes', () => {
     const { server, handlers } = createMockServer();
     const client = { request: vi.fn() } as unknown as ConnectClient;
 
@@ -26,6 +26,7 @@ describe('registerTools', () => {
     expect(handlers.has('connect_agent_prompt')).toBe(false);
     expect(handlers.has('connect_agent_feedback')).toBe(false);
     expect(handlers.has('connect_lookup_exposed')).toBe(true);
+    expect(handlers.has('connect_get_chains')).toBe(true);
   });
 
   it('connect_get_price calls GET /price without auth', async () => {
@@ -38,6 +39,20 @@ describe('registerTools', () => {
     expect(request).toHaveBeenCalledWith({
       method: 'GET',
       path: '/price',
+      authenticated: false,
+    });
+  });
+
+  it('connect_get_chains calls GET /chains without auth', async () => {
+    const { server, handlers } = createMockServer();
+    const request = vi.fn().mockResolvedValue({ content: [] });
+    registerTools(server, { request } as unknown as ConnectClient);
+
+    await handlers.get('connect_get_chains')!({});
+
+    expect(request).toHaveBeenCalledWith({
+      method: 'GET',
+      path: '/chains',
       authenticated: false,
     });
   });
