@@ -363,7 +363,7 @@ mistake.
 | `connect_scores_by_account`  | Scores for one linked account                             |
 | `connect_scores_by_username` | Scores by Connect username                                |
 | `connect_me`                 | API key owner profile, scores, and linked accounts — **API key only** |
-| `connect_drop`               | Smart Send (batch token transfer) — **API key only**      |
+| `connect_drop`               | Smart Send (EVM batch or Solana SOL/SPL) — **API key only** |
 | `connect_drop_balance`       | Smart Send wallet balances on a chain — **API key only**  |
 
 
