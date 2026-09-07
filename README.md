@@ -1,6 +1,12 @@
 # Quidli Connect MCP
 
-Identity and reputation for agents. Resolve a social handle to a wallet, check reputation, and send tokens — from Cursor, Claude Desktop, Claude Code, or any MCP-compatible client.
+[![npm version](https://img.shields.io/npm/v/@quidli/connect-mcp.svg)](https://www.npmjs.com/package/@quidli/connect-mcp)
+[![npm downloads](https://img.shields.io/npm/dw/@quidli/connect-mcp.svg)](https://www.npmjs.com/package/@quidli/connect-mcp)
+[![license](https://img.shields.io/npm/l/@quidli/connect-mcp.svg)](./LICENSE)
+
+Open payments for multiplayer agents, powered by social reputation. Resolve a social handle to a wallet, check reputation, and send tokens — from Cursor, Claude Desktop, Claude Code, or any MCP-compatible client.
+
+Multiplayer means parties who don't already know each other — an agent paying a person, or another agent, with no prior relationship and no account to fall back on. Connect is how it verifies who it's dealing with before sending anything.
 
 Public repository: [github.com/Quidli/connect-mcp](https://github.com/Quidli/connect-mcp)
 
@@ -46,7 +52,7 @@ Then ask your agent:
 
 Resolves across Telegram, Discord, Farcaster, X, GitHub, LinkedIn, email and phone — and generates a wallet for people who have never used Quidli.
 
-Lookup, scores, agent and price run without a key under a shared anonymous quota. Add a [Connect API key](https://connect.quid.li) for higher limits, your own profile (`connect_me`), and Smart Send.
+Lookup, scores, and price run without a key under a shared anonymous quota. Add a [Connect API key](https://connect.quid.li) for higher limits, your own profile (`connect_me`), and Smart Send.
 
 ---
 
@@ -68,7 +74,7 @@ Get a Connect API key at [connect.quid.li](https://connect.quid.li) → **Enable
 
 ## Hosted (recommended)
 
-Zero local setup. Lookup, scores, and price work without an API key (shared anonymous quota). Add a key for higher limits, your profile (`connect_me`), and Smart Send.
+Zero local setup. Lookup, scores, agent, and price work without an API key (shared anonymous quota). Add a key for higher limits, your profile (`connect_me`), and Smart Send.
 
 ### Cursor
 
@@ -144,6 +150,8 @@ If your Claude version does not support remote `url` connectors, use the local b
 Requires **Node.js 20+** for the bridge. Restart Claude Desktop after saving. You should see a hammer icon in the chat input when tools are available.
 
 Without a key, `initialize` / `tools/list` always succeed. Anonymous `tools/call` share a global quota (HTTP **429** when exceeded — get a key for higher limits). Placeholder keys still return **401**.
+
+---
 
 ### Grok
 
@@ -363,7 +371,7 @@ mistake.
 | `connect_scores_by_account`  | Scores for one linked account                             |
 | `connect_scores_by_username` | Scores by Connect username                                |
 | `connect_me`                 | API key owner profile, scores, and linked accounts — **API key only** |
-| `connect_drop`               | Smart Send (EVM batch or Solana SOL/SPL) — **API key only** |
+| `connect_drop`               | Smart Send (batch token transfer) — **API key only**      |
 | `connect_drop_balance`       | Smart Send wallet balances on a chain — **API key only**  |
 
 

@@ -1,7 +1,14 @@
 {
-  "name": "io.github.justinquidli/connect-mcp",
-  "description": "Identity and reputation for AI agents.",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.quidli/connect-mcp",
+  "title": "Quidli Connect",
+  "description": "MCP server for agent identity and reputation: resolve social handles to wallet addresses, score onchain reputation, and send USDC from any MCP client.",
   "version": "0.6.0",
+  "websiteUrl": "https://connect.quid.li",
+  "repository": {
+    "url": "https://github.com/Quidli/connect-mcp",
+    "source": "github"
+  },
   "packages": [
     {
       "registryType": "npm",
@@ -17,6 +24,5 @@
       "type": "streamable-http",
       "url": "https://mcp.connect.quid.li"
     }
-  ],
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json"
+  ]
 }

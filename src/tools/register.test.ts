@@ -4,15 +4,30 @@ import type { ConnectClient } from '../client.js';
 import { CONNECT_MCP_TOOL_NAMES, registerTools } from './register.js';
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
+type ToolAnnotations = { readOnlyHint?: boolean; destructiveHint?: boolean };
 
-function createMockServer(): { server: McpServer; handlers: Map<string, ToolHandler> } {
+function createMockServer(): {
+  server: McpServer;
+  handlers: Map<string, ToolHandler>;
+  annotations: Map<string, ToolAnnotations>;
+} {
   const handlers = new Map<string, ToolHandler>();
+  const annotations = new Map<string, ToolAnnotations>();
   const server = {
-    tool: vi.fn((name: string, _desc: string, _schema: unknown, handler: ToolHandler) => {
-      handlers.set(name, handler);
-    }),
+    tool: vi.fn(
+      (
+        name: string,
+        _desc: string,
+        _schema: unknown,
+        anno: ToolAnnotations,
+        handler: ToolHandler,
+      ) => {
+        handlers.set(name, handler);
+        annotations.set(name, anno);
+      },
+    ),
   } as unknown as McpServer;
-  return { server, handlers };
+  return { server, handlers, annotations };
 }
 
 describe('registerTools', () => {
@@ -170,5 +185,40 @@ describe('registerTools', () => {
       path: '/scores',
       body: { users, filter },
     });
+  });
+  // Clients auto-register Connect tools by readOnlyHint instead of a
+  // hand-maintained allowlist. An unannotated tool is not offered to a model at
+  // all, so a missing annotation is a capability that silently disappears — and
+  // a wrong one on connect_drop puts the money path in front of the model.
+  it('annotates every registered tool with an explicit readOnlyHint', () => {
+    const { server, annotations } = createMockServer();
+    registerTools(server, { request: vi.fn() } as unknown as ConnectClient);
+
+    for (const name of CONNECT_MCP_TOOL_NAMES) {
+      expect(annotations.get(name), `${name} has no annotations`).toBeDefined();
+      expect(
+        typeof annotations.get(name)!.readOnlyHint,
+        `${name} has no readOnlyHint`,
+      ).toBe('boolean');
+    }
+  });
+
+  it('marks connect_drop as the only non-read-only tool', () => {
+    const { server, annotations } = createMockServer();
+    registerTools(server, { request: vi.fn() } as unknown as ConnectClient);
+
+    const writers = [...annotations.entries()]
+      .filter(([, anno]) => anno.readOnlyHint !== true)
+      .map(([name]) => name);
+
+    expect(writers).toEqual(['connect_drop']);
+    expect(annotations.get('connect_drop')!.destructiveHint).toBe(true);
+  });
+
+  it('keeps connect_drop_balance read-only despite its /drop path', () => {
+    const { server, annotations } = createMockServer();
+    registerTools(server, { request: vi.fn() } as unknown as ConnectClient);
+
+    expect(annotations.get('connect_drop_balance')!.readOnlyHint).toBe(true);
   });
 });
