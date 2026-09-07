@@ -97,31 +97,31 @@ export const scoresByUsernameInputSchema = {
 };
 
 export const dropBalanceInputSchema = {
-  chainId: z.number().int().describe('EVM chain ID or 1399811149 for Solana mainnet (Smart Send)'),
+  chainId: z.number().int().describe('EVM chain ID (Smart Send supported chains only)'),
 };
 
 export const dropInputSchema = {
   idempotencyKey: z.string().uuid(),
-  chainId: z.number().int().describe('EVM chain ID or 1399811149 for Solana mainnet'),
+  chainId: z.number().int().describe('EVM chain ID (Smart Send supported chains only)'),
   tokenContract: z
     .string()
     .nullable()
     .optional()
     .describe(
-      'EVM ERC-20 contract or Solana SPL mint. Omit or null for the native token (ETH/POL/AVAX, or SOL on 1399811149). Do not use the zero address.',
+      'ERC-20 contract address. Omit or null for the chain native token (ETH, POL, AVAX). Do not use the zero address.',
     ),
   recipients: z
     .array(linkedAccountSchema)
     .min(1)
     .describe(
-      'Wallet or social recipients (all wallet or all social, no mix). Optional amountInWei per recipient uses the same smallest-unit rules as amountInWeiPerRecipient. On Solana, wallet ids are base58 pubkeys; social lookup pays solWalletAddress.',
+      'Wallet or social recipients (all wallet or all social, no mix). Optional amountInWei per recipient uses the same smallest-unit rules as amountInWeiPerRecipient.',
     ),
   amountInWeiPerRecipient: z
     .string()
     .optional()
     .nullable()
     .describe(
-      'Uniform amount in smallest units. Native ETH uses 18 decimals; SOL uses 9; ERC-20/SPL uses token decimals from connect_drop_balance (USDC usually 6). Omit when setting amountInWei on each recipient.',
+      'Uniform amount in smallest units (wei). Native ETH uses 18 decimals; ERC-20 uses token decimals from connect_drop_balance (USDC usually 6). Omit when setting amountInWei on each recipient.',
     ),
   ignoreFailedRecipients: z
     .boolean()
