@@ -54,7 +54,7 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
 
   server.tool(
     'connect_get_chains',
-    'List product chains with per-feature compatibility. lookup is true for EVM catalog chains and Solana; drop is true only for Smart Send EVM chains (use those chainIds for connect_drop / connect_drop_balance).',
+    'List product chains with per-feature compatibility. lookup is true for EVM catalog chains and Solana; drop is true for Smart Send EVM chains and Solana (chainId 1399811149 for connect_drop / connect_drop_balance).',
     {},
     READ_ONLY,
     async () => client.request({ method: 'GET', path: '/chains', authenticated: false }),
@@ -137,7 +137,10 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
 
   server.tool(
     'connect_drop',
-    'Execute a Smart Send (batch native or ERC-20 transfer). Omit tokenContract or set it to null for the chain native token (ETH on 1/8453/10/42161/480, POL on 137, AVAX on 43114); pass the ERC-20 contract address otherwise — do not use the zero address. Amounts are smallest-unit integer strings; use connect_drop_balance decimals (native ETH = 18, USDC usually 6). Returns 201 when submitted or 202 when recipients still processing — retry with the same idempotencyKey.',
+    'Execute a Smart Send from the API key owner Connect embedded wallet. EVM: batch native or ERC-20 (need native gas plus the token). Solana (chainId 1399811149): SOL or SPL from the Solana embedded wallet. Lookup social recipients and pay solWalletAddress, never ethWalletAddress. Omit tokenContract or set it to null for the native token; pass an ERC-20 contract or SPL mint otherwise — do not use the zero address. Amounts are smallest-unit integer strings (ETH 18 decimals, SOL 9, USDC usually 6). Packs up to 20 SOL or 10 SPL recipients per transaction. ' +
+      'Solana native (tokenContract null): no ATA. Sending to a new or empty wallet requires amount ≥ 890880 lamports (rent-exempt minimum for a system account); that SOL stays with the recipient. Below that the tx fails. Sender also pays a ~5000-lamport fee. ' +
+      'Solana SPL: tokens sit in Associated Token Accounts (ATA), not on the wallet pubkey. Recipients need not already hold the token — the API prepends CreateIdempotent. The sender (not the recipient) pays ~2039280 lamports (~0.002039 SOL) rent per newly created dest ATA, plus tx fees, on top of the token amount (which can be as small as 1 unit). A 400 "Insufficient funds" on SPL is often missing SOL for ATA rent, not missing USDC. Token-2022 is not supported; USDC mint is EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v. ' +
+      'Always call connect_drop_balance first. Returns 201 when submitted or 202 when recipients still processing — retry with the same idempotencyKey.',
     dropInputSchema,
     SPENDS_FUNDS,
     async ({ ignoreFailedRecipients, ...body }) =>
@@ -155,7 +158,9 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
 
   server.tool(
     'connect_drop_balance',
-    'Get native and ERC-20 balances for the API key owner Smart Send embedded wallet on a chain. Use before connect_drop to verify gas and token funds.',
+    'Get native and token balances for the API key owner Smart Send embedded wallet on a chain. Always call before connect_drop. Zero balances are omitted, so a missing token means balance 0. ' +
+      'EVM: confirm native gas plus the ERC-20 being sent. ' +
+      'Solana (chainId 1399811149): SOL in this response is spendable lamports on the wallet pubkey (rent locked in existing token accounts is not included). Native SOL drop to a new/empty recipient: amount itself must be ≥ 890880 lamports and sender SOL must cover amount + ~5000 lamports fee. SPL drop: token balance ≥ total amount, and SOL ≥ tx fee + ~2039280 lamports (~0.002039 SOL) per recipient that may need a new Associated Token Account — even when sending USDC. Insufficient SOL for ATA rent fails before the token transfer.',
     dropBalanceInputSchema,
     READ_ONLY,
     async ({ chainId }) =>
