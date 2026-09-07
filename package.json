@@ -1,25 +1,35 @@
 {
   "name": "@quidli/connect-mcp",
-  "version": "0.5.7",
-  "description": "Identity and reputation for AI agents: resolve social handles to wallet addresses, check reputation scores, and send tokens from any MCP client.",
+  "version": "0.5.9",
+  "description": "MCP server for agent identity and reputation: resolve social handles to wallet addresses, score onchain reputation, and send USDC from any MCP client.",
   "keywords": [
     "mcp",
     "mcp-server",
     "model-context-protocol",
-    "ai",
-    "agent",
-    "web3-agent",
-    "agent-payments",
+    "reputation",
+    "onchain-reputation",
     "identity",
     "identity-resolution",
-    "reputation",
-    "payments",
     "wallet",
+    "wallet-lookup",
+    "agent",
+    "ai",
+    "agent-payments",
+    "payments",
     "usdc",
+    "crypto",
+    "web3-agent",
+    "multiplayer-agents",
+    "x402",
+    "ethereum",
+    "solana",
+    "base",
     "farcaster",
-    "x402"
+    "claude",
+    "cursor",
+    "claude-desktop"
   ],
-  "homepage": "https://quidli.xyz",
+  "homepage": "https://connect.quid.li",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Quidli/connect-mcp.git"
@@ -45,8 +55,8 @@
     "./http": "./dist/http.js"
   },
   "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "npm run build && chmod +x dist/index.js dist/index-http.js",
+    "build": "tsc && chmod +x dist/index.js dist/index-http.js",
+    "prepublishOnly": "npm run build",
     "start": "node dist/index.js",
     "start:http": "node dist/index-http.js",
     "test": "vitest run",
@@ -74,7 +84,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "mcpName": "io.github.justinquidli/connect-mcp",
+  "mcpName": "io.github.quidli/connect-mcp",
   "bugs": {
     "url": "https://github.com/Quidli/connect-mcp/issues"
   }
