@@ -1,24 +1,14 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.Quidli/connect-mcp",
+  "name": "io.github/connect-mcp",
   "title": "Quidli Connect",
   "description": "MCP server: resolve social handles to wallet addresses, check onchain reputation, send USDC.",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "websiteUrl": "https://connect.quid.li",
   "repository": {
     "url": "https://github.com/Quidli/connect-mcp",
     "source": "github"
   },
-  "packages": [
-    {
-      "registryType": "npm",
-      "identifier": "@quidli/connect-mcp",
-      "version": "0.6.0",
-      "transport": {
-        "type": "stdio"
-      }
-    }
-  ],
   "remotes": [
     {
       "type": "streamable-http",
