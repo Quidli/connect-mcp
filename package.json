@@ -84,7 +84,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "mcpName": "io.github.quidli/connect-mcp",
+  "mcpName": "io.github.Quidli/connect-mcp",
   "bugs": {
     "url": "https://github.com/Quidli/connect-mcp/issues"
   }
