@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.quidli/connect-mcp",
+  "name": "io.github.Quidli/connect-mcp",
   "title": "Quidli Connect",
   "description": "MCP server: resolve social handles to wallet addresses, check onchain reputation, send USDC.",
-  "version": "0.6.0",
+  "version": "0.6.2",
   "websiteUrl": "https://connect.quid.li",
   "repository": {
     "url": "https://github.com/Quidli/connect-mcp",
