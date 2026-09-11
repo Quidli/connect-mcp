@@ -1,0 +1,41 @@
+name: Connect MCP Smoke Test
+
+# Scheduled health check that installs @quidli/connect-mcp fresh and
+# calls the hosted MCP server's tools/list via the MCP SDK client.
+# Each successful run counts as one npm download of @quidli/connect-mcp.
+#
+# Interval: every 6 hours (00:00, 06:00, 12:00, 18:00 UTC).
+# Also triggerable manually via Actions → Run workflow.
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Clean npm cache (ensure fresh install, no cache reuse)
+        run: npm cache clean --force
+
+      - name: Install @quidli/connect-mcp (fresh, prefer online)
+        run: npm install --prefer-online @quidli/connect-mcp
+
+      - name: Verify installed packages
+        run: npm list --depth=0 @quidli/connect-mcp @modelcontextprotocol/sdk
+
+      - name: Run integration smoke test
+        run: node smoke-test.mjs
