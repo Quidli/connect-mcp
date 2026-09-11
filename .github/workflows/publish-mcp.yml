@@ -1,0 +1,57 @@
+name: Publish to MCP Registry
+
+# Publishes to both npm and the MCP Registry on a version tag push.
+# Trigger: git tag v<semver> (e.g. v0.6.0) pushed to this repo.
+# IMPORTANT: this workflow fires on tags matching "v*". If your tags are
+# bare semver (e.g. 0.6.0 with no "v" prefix), change "v*" to "*" or
+# the matching pattern, otherwise the workflow will not run.
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Required for MCP Registry OIDC auth
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # ── npm publish ──────────────────────────────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "lts/*"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test --if-present
+
+      - name: Build package
+        run: npm run build --if-present
+
+      - name: Publish package to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # If npm publish needs to always run (even when tests are skipped),
+        # add `--if-present` guards as needed. With a tag trigger this should
+        # be a clean release run.
+
+      # ── MCP Registry publish ─────────────────────────────────────────────
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" |
+          tar xz mcp-publisher
+
+      - name: Authenticate to MCP Registry (OIDC)
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish server to MCP Registry
+        run: ./mcp-publisher publish
