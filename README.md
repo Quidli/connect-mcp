@@ -8,7 +8,7 @@ Open payments for multiplayer agents, powered by social reputation. Resolve a so
 
 Multiplayer means parties who don't already know each other — an agent paying a person, or another agent, with no prior relationship and no account to fall back on. Connect is how it verifies who it's dealing with before sending anything.
 
-Public repository: [github.com/Quidli/connect-mcp](https://github.com/Quidli/connect-mcp)
+Public repository: [github.com/Quidli/connect-mcp](https://github.com/Quidli/connect-mcp) · Listed in the [MCP Registry](https://registry.modelcontextprotocol.io/servers/io.github.quidli/connect-mcp)
 
 ## Try it in one command
 
