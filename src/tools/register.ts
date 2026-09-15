@@ -88,7 +88,7 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
 
   server.tool(
     'connect_scores_batch',
-    'Batch scores for linked accounts or Connect usernames. Optional filter excludes users below minScore (quidli 0–100, neynar/lens 0–1, ethos 0–2800).',
+    'Batch scores for linked accounts or Connect usernames. One result per request user. Optional filter sets passedFilter (quidli 0–100, neynar/lens 0–1, ethos 0–2800).',
     scoresBatchInputSchema,
     READ_ONLY,
     async ({ users, filter }) =>
@@ -137,8 +137,8 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
 
   server.tool(
     'connect_drop',
-    'Execute a Smart Send from the API key owner Connect embedded wallet. EVM: batch native or ERC-20 (need native gas plus the token). Solana (chainId 1399811149): SOL or SPL from the Solana embedded wallet. Lookup social recipients and pay solWalletAddress, never ethWalletAddress. Omit tokenContract or set it to null for the native token; pass an ERC-20 contract or SPL mint otherwise — do not use the zero address. Amounts are smallest-unit integer strings (ETH 18 decimals, SOL 9, USDC usually 6). Packs up to 20 SOL or 10 SPL recipients per transaction. ' +
-      'Solana native (tokenContract null): no ATA. Sending to a new or empty wallet requires amount ≥ 890880 lamports (rent-exempt minimum for a system account); that SOL stays with the recipient. Below that the tx fails. Sender also pays a ~5000-lamport fee. ' +
+    'Execute a Smart Send from the API key owner Connect embedded wallet. EVM: batch native or ERC-20 (need native gas plus the token). Solana (chainId 1399811149): SOL or SPL from the Solana embedded wallet; packs up to 20 native or 10 SPL recipients per transaction. Social recipient types: email, phone, telegram, discord, farcaster, twitter, github (id or username). linkedin and slack are not on /drop — use connect_lookup first, then type wallet. After connect_lookup, EVM payouts use ethWalletAddress (never solWalletAddress); Solana payouts use solWalletAddress (never ethWalletAddress). Social types on /drop resolve server-side; for type wallet, pass the resolved payout address for the target chain. Omit tokenContract or set it to null for the native token; pass an ERC-20 contract or SPL mint otherwise — do not use the zero address. Amounts are smallest-unit integer strings (ETH 18 decimals, SOL 9, USDC usually 6). ' +
+      'Solana native (tokenContract null): no ATA. Sending to a recipient without an existing funded account requires amount ≥ 890880 lamports (rent-exempt minimum for a system account); that SOL stays with the recipient. Below that the tx fails. Sender also pays a ~5000-lamport fee. ' +
       'Solana SPL: tokens sit in Associated Token Accounts (ATA), not on the wallet pubkey. Recipients need not already hold the token — the API prepends CreateIdempotent. The sender (not the recipient) pays ~2039280 lamports (~0.002039 SOL) rent per newly created dest ATA, plus tx fees, on top of the token amount (which can be as small as 1 unit). A 400 "Insufficient funds" on SPL is often missing SOL for ATA rent, not missing USDC. Token-2022 is not supported; USDC mint is EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v. ' +
       'Always call connect_drop_balance first. Returns 201 when submitted or 202 when recipients still processing — retry with the same idempotencyKey.',
     dropInputSchema,
@@ -160,7 +160,7 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
     'connect_drop_balance',
     'Get native and token balances for the API key owner Smart Send embedded wallet on a chain. Always call before connect_drop. Zero balances are omitted, so a missing token means balance 0. ' +
       'EVM: confirm native gas plus the ERC-20 being sent. ' +
-      'Solana (chainId 1399811149): SOL in this response is spendable lamports on the wallet pubkey (rent locked in existing token accounts is not included). Native SOL drop to a new/empty recipient: amount itself must be ≥ 890880 lamports and sender SOL must cover amount + ~5000 lamports fee. SPL drop: token balance ≥ total amount, and SOL ≥ tx fee + ~2039280 lamports (~0.002039 SOL) per recipient that may need a new Associated Token Account — even when sending USDC. Insufficient SOL for ATA rent fails before the token transfer.',
+      'Solana (chainId 1399811149): SOL in this response is spendable lamports on the wallet pubkey (rent locked in existing token accounts is not included). Native SOL drop to a recipient without an existing funded account: amount itself must be ≥ 890880 lamports and sender SOL must cover amount + ~5000 lamports fee. SPL drop: token balance ≥ total amount, and SOL ≥ tx fee + ~2039280 lamports (~0.002039 SOL) per recipient that may need a new Associated Token Account — even when sending USDC. Insufficient SOL for ATA rent fails before the token transfer.',
     dropBalanceInputSchema,
     READ_ONLY,
     async ({ chainId }) =>

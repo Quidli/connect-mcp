@@ -8,7 +8,7 @@ Open payments for multiplayer agents, powered by social reputation. Resolve a so
 
 Multiplayer means parties who don't already know each other — an agent paying a person, or another agent, with no prior relationship and no account to fall back on. Connect is how it verifies who it's dealing with before sending anything.
 
-Public repository: [github.com/Quidli/connect-mcp](https://github.com/Quidli/connect-mcp) · Listed in the [MCP Registry](https://registry.modelcontextprotocol.io/servers/io.github.quidli/connect-mcp)
+Public repository: [github.com/Quidli/connect-mcp](https://github.com/Quidli/connect-mcp)
 
 ## Try it in one command
 
@@ -34,23 +34,23 @@ See [Choose how to connect](#choose-how-to-connect) below for API keys, x402 wal
 
 Then ask your agent:
 
-> Resolve the Farcaster handle `ahn.eth` to a wallet.
+> Resolve the GitHub handle `justinquidli` to a wallet.
 
 ```json
 {
   "status": "completed",
   "results": [
     {
-      "type": "farcaster",
-      "value": "ahn.eth",
-      "ethWalletAddress": "0x07De92Ce6474D718c80e696516bf0bE53290fF5E",
+      "type": "github",
+      "value": "justinquidli",
+      "ethWalletAddress": "0x6a48ADE3bE3F9f0b8B4c9af61Bb654A219311699",
       "solWalletAddress": "9DD2CqPKZJoo7ZRgCXxJNMjhzfgVihSKtkZpn8qnEWK9"
     }
   ]
 }
 ```
 
-Resolves across Telegram, Discord, Farcaster, X, GitHub, LinkedIn, email and phone — and generates a wallet for people who have never used Quidli.
+Resolves across GitHub, X, Telegram, Discord, LinkedIn, Farcaster, email and phone — and generates a wallet for people who have never used Quidli.
 
 Lookup, scores, and price run without a key under a shared anonymous quota. Add a [Connect API key](https://connect.quid.li) for higher limits, your own profile (`connect_me`), and Smart Send.
 
@@ -376,3 +376,9 @@ mistake.
 
 
 Ask your client to use these tools when you need Connect data or actions.
+
+## Contributing
+
+This repository is a read-only mirror, regenerated on every release — changes
+committed here are overwritten. Please open an issue rather than a pull request.
+See [CONTRIBUTING.md](CONTRIBUTING.md).

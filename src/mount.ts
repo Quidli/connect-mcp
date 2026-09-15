@@ -61,6 +61,42 @@ export function isConnectMcpHost(hostname: string, env: NodeJS.ProcessEnv = proc
   );
 }
 
+// The MCP SDK's StreamableHTTPServerTransport requires the Accept header to
+// name BOTH application/json and text/event-stream literally, and rejects
+// anything else with 406. That is stricter than HTTP content negotiation: a
+// wildcard Accept (the default for curl, fetch and most HTTP libraries, and
+// for clients that omit the header entirely) does accept both, but is still
+// refused. Directory health checkers and plain HTTP integrators hit this.
+//
+// So rewrite the header to the canonical form whenever the client's own Accept
+// already permits both types (absent, wildcard, or the relevant type
+// wildcards). A client that genuinely accepts neither is left alone and still
+// gets its 406.
+const CANONICAL_ACCEPT = 'application/json, text/event-stream';
+
+export function normalizeAcceptHeader(req: Pick<Request, 'headers'>): void {
+  const raw = req.headers.accept;
+  const value = Array.isArray(raw) ? raw.join(',') : (raw ?? '');
+
+  // No Accept header means "anything" per RFC 9110.
+  if (!value.trim()) {
+    req.headers.accept = CANONICAL_ACCEPT;
+    return;
+  }
+
+  const types = value
+    .split(',')
+    .map((part) => part.split(';')[0]!.trim().toLowerCase())
+    .filter(Boolean);
+
+  const permits = (type: string): boolean =>
+    types.includes(type) || types.includes('*/*') || types.includes(`${type.split('/')[0]}/*`);
+
+  if (permits('application/json') && permits('text/event-stream')) {
+    req.headers.accept = CANONICAL_ACCEPT;
+  }
+}
+
 export function mountConnectMcpHttp(router: IRouter, options: ConnectMcpMountOptions): void {
   const { baseUrl } = options;
   const env = options.env ?? process.env;
@@ -74,6 +110,8 @@ export function mountConnectMcpHttp(router: IRouter, options: ConnectMcpMountOpt
   // No in-memory session map, so Cloud Run restarts / multiple instances
   // never cause "Missing or invalid MCP session" errors.
   router.all('/', async (req: Request, res: Response) => {
+    normalizeAcceptHeader(req);
+
     const gate = gateHostedMcpRequest(req, { env, anonymousQuota });
     if (!gate.ok) {
       sendJsonRpcError(res, gate.status, gate.message, {

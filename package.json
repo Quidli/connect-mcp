@@ -1,6 +1,6 @@
 {
   "name": "@quidli/connect-mcp",
-  "version": "0.6.0",
+  "version": "0.6.2",
   "description": "MCP server for agent identity and reputation: resolve social handles to wallet addresses, score onchain reputation, and send USDC from any MCP client.",
   "keywords": [
     "mcp",
@@ -55,7 +55,7 @@
     "./http": "./dist/http.js"
   },
   "scripts": {
-    "build": "tsc && chmod +x dist/index.js dist/index-http.js",
+    "build": "tsc && node --input-type=commonjs -e \"const fs=require('fs'); for (const f of ['dist/index.js','dist/index-http.js']) fs.chmodSync(f, 0o755)\"",
     "prepublishOnly": "npm run build",
     "start": "node dist/index.js",
     "start:http": "node dist/index-http.js",
@@ -84,7 +84,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "mcpName": "io.github.Quidli/connect-mcp",
+  "mcpName": "io.github.quidli/connect-mcp",
   "bugs": {
     "url": "https://github.com/Quidli/connect-mcp/issues"
   }
