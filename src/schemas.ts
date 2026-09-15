@@ -20,6 +20,26 @@ const recipientTypeSchema = z.enum([
 
 const exposureRecipientTypeSchema = recipientTypeSchema;
 
+const dropSocialTypeSchema = z.enum([
+  'email',
+  'phone',
+  'telegram',
+  'discord',
+  'farcaster',
+  'twitter',
+  'github',
+]);
+
+const dropRecipientTypeSchema = z.enum([...dropSocialTypeSchema.options, 'wallet']);
+
+const dropRecipientSchema = z
+  .object({
+    type: dropRecipientTypeSchema,
+    id: z.string().optional(),
+    username: z.string().optional(),
+  })
+  .passthrough();
+
 /** Unified recipient — API validates fully; MCP forwards JSON. */
 export const linkedAccountSchema = z
   .object({
@@ -111,10 +131,10 @@ export const dropInputSchema = {
       'EVM ERC-20 contract or Solana SPL mint. Omit or null for the native token (ETH/POL/AVAX, or SOL on 1399811149). Do not use the zero address.',
     ),
   recipients: z
-    .array(linkedAccountSchema)
+    .array(dropRecipientSchema)
     .min(1)
     .describe(
-      'Wallet or social recipients (all wallet or all social, no mix). Optional amountInWei per recipient uses the same smallest-unit rules as amountInWeiPerRecipient. On Solana, wallet ids are base58 pubkeys; social lookup pays solWalletAddress.',
+      'Wallet or social recipients (all wallet or all social, no mix). Social types: email, phone, telegram, discord, farcaster, twitter, github (numeric id or username). linkedin and slack are not supported — use connect_lookup first, then type wallet. Optional amountInWei per recipient uses the same smallest-unit rules as amountInWeiPerRecipient. On EVM, wallet ids are 0x addresses; on Solana, base58 pubkeys. Social lookup payouts use ethWalletAddress on EVM and solWalletAddress on Solana.',
     ),
   amountInWeiPerRecipient: z
     .string()
