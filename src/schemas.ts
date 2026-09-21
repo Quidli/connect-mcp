@@ -147,4 +147,52 @@ export const dropInputSchema = {
     .boolean()
     .optional()
     .describe(    'When true, send to recipients that resolved successfully and skip failed lookups.'),
+  trustFilter: z
+    .object({
+      context: z.string().optional().describe('Restrict to this trust context. Omit to match any.'),
+      mode: z.enum(['require', 'skip']).describe('require = fail if anyone is outside the graph; skip = drop them'),
+    })
+    .optional()
+    .describe('Keep only recipients in the sender EAS trust graph.'),
+};
+
+export const trustIdentitySchema = linkedAccountSchema;
+
+export const trustCreateInputSchema = {
+  to: trustIdentitySchema.describe('Identity to trust (wallet, social, or Connect username)'),
+  level: z.number().int().min(1).max(100).describe('Trust level 1–100'),
+  context: z.string().max(64).optional().describe('Optional context such as team:quidli'),
+  expiresIn: z.number().int().positive().optional().describe('Optional lifetime in seconds'),
+};
+
+export const trustRevokeInputSchema = {
+  to: trustIdentitySchema.describe('Identity to untrust'),
+  context: z.string().max(64).optional().describe('Revoke only this context. Omit to revoke all contexts for the pair.'),
+};
+
+export const trustCheckInputSchema = {
+  from: trustIdentitySchema.describe('Graph owner'),
+  targets: z.array(trustIdentitySchema).min(1).describe('Identities to test'),
+  context: z.string().max(64).optional().describe('If set, only this context matches'),
+};
+
+export const trustGraphInputSchema = {
+  platform: z
+    .enum([
+      'wallet',
+      'email',
+      'phone',
+      'telegram',
+      'discord',
+      'farcaster',
+      'twitter',
+      'github',
+      'linkedin',
+      'slack',
+      'username',
+    ])
+    .describe('Identity platform, or username for a Connect username'),
+  identifier: z.string().min(1),
+  context: z.string().max(64).optional(),
+  direction: z.enum(['out', 'in']).optional().describe('out = who they trust (default); in = who trusts them'),
 };

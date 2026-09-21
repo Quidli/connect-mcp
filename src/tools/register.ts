@@ -8,6 +8,10 @@ import {
   scoresBatchInputSchema,
   scoresByAccountInputSchema,
   scoresByUsernameInputSchema,
+  trustCheckInputSchema,
+  trustCreateInputSchema,
+  trustGraphInputSchema,
+  trustRevokeInputSchema,
 } from '../schemas.js';
 
 export const CONNECT_MCP_TOOL_NAMES = [
@@ -21,6 +25,10 @@ export const CONNECT_MCP_TOOL_NAMES = [
   'connect_me',
   'connect_drop',
   'connect_drop_balance',
+  'connect_trust_create',
+  'connect_trust_revoke',
+  'connect_trust_check',
+  'connect_trust_graph',
 ] as const;
 
 /**
@@ -169,6 +177,63 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
         path: '/drop/balance',
         requireApiKey: true,
         query: { chainId: String(chainId) },
+      }),
+  );
+
+  server.tool(
+    'connect_trust_create',
+    'Create a unidirectional trust attestation on Base (EAS) from the API key owner embedded wallet to a wallet or social identity. Identical active attestations are returned without a new transaction. Requires CONNECT_API_KEY, Smart Send attestation signer enrolled, and ETH on Base for gas.',
+    trustCreateInputSchema,
+    SPENDS_FUNDS,
+    async (body) =>
+      client.request({
+        method: 'POST',
+        path: '/trust',
+        body,
+        requireApiKey: true,
+      }),
+  );
+
+  server.tool(
+    'connect_trust_revoke',
+    'Revoke active trust attestations from the API key owner to a target. Optional context limits which attestations are revoked. Requires CONNECT_API_KEY and ETH on Base.',
+    trustRevokeInputSchema,
+    SPENDS_FUNDS,
+    async (body) =>
+      client.request({
+        method: 'POST',
+        path: '/trust/revoke',
+        body,
+        requireApiKey: true,
+      }),
+  );
+
+  server.tool(
+    'connect_trust_check',
+    'Check whether identities sit in a trust graph at depth 1. Omit context to match any context.',
+    trustCheckInputSchema,
+    READ_ONLY,
+    async (body) =>
+      client.request({
+        method: 'POST',
+        path: '/trust/check',
+        body,
+      }),
+  );
+
+  server.tool(
+    'connect_trust_graph',
+    'List outgoing or incoming trust edges for an identity at depth 1.',
+    trustGraphInputSchema,
+    READ_ONLY,
+    async ({ platform, identifier, context, direction }) =>
+      client.request({
+        method: 'GET',
+        path: `/trust/graph/${encodeURIComponent(platform)}/${encodeURIComponent(identifier)}`,
+        query: {
+          context,
+          direction,
+        },
       }),
   );
 }

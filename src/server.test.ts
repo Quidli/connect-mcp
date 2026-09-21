@@ -3,11 +3,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 const connectMock = vi.fn();
 const transportMock = vi.fn();
 const loadConfigMock = vi.fn();
-const registerToolsMock = vi.fn();
-
-vi.mock('@modelcontextprotocol/sdk/server/mcp.js', () => ({
-  McpServer: vi.fn().mockImplementation(() => ({ connect: connectMock })),
-}));
+const createMcpServerMock = vi.fn();
 
 vi.mock('@modelcontextprotocol/sdk/server/stdio.js', () => ({
   StdioServerTransport: vi.fn().mockImplementation(() => transportMock),
@@ -17,9 +13,8 @@ vi.mock('./config.js', () => ({
   loadConfig: (...args: unknown[]) => loadConfigMock(...args),
 }));
 
-vi.mock('./tools/register.js', () => ({
-  registerTools: (...args: unknown[]) => registerToolsMock(...args),
-  CONNECT_MCP_TOOL_NAMES: ['connect_get_price'],
+vi.mock('./create-mcp-server.js', () => ({
+  createMcpServer: (...args: unknown[]) => createMcpServerMock(...args),
 }));
 
 describe('main', () => {
@@ -35,20 +30,23 @@ describe('main', () => {
 
     const { main } = await import('./server.js');
     await expect(main()).rejects.toThrow(/CONNECT_X402_EVM_NETWORK/);
+    expect(createMcpServerMock).not.toHaveBeenCalled();
     expect(connectMock).not.toHaveBeenCalled();
   });
 
   it('connects stdio transport when config loads', async () => {
-    loadConfigMock.mockReturnValue({
+    const config = {
       apiKey: 'test-key',
       baseUrl: 'https://api.test',
       x402EvmNetwork: 8453,
-    });
+    };
+    loadConfigMock.mockReturnValue(config);
+    createMcpServerMock.mockReturnValue({ connect: connectMock });
 
     const { main } = await import('./server.js');
     await main();
 
-    expect(registerToolsMock).toHaveBeenCalled();
+    expect(createMcpServerMock).toHaveBeenCalledWith(config);
     expect(connectMock).toHaveBeenCalledWith(transportMock);
   });
 });
