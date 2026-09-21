@@ -3,7 +3,7 @@
   "name": "io.github.quidli/connect-mcp",
   "title": "Quidli Connect",
   "description": "MCP server for agent identity and reputation: resolve social handles to wallet addresses, score onchain reputation, and send USDC from any MCP client.",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "websiteUrl": "https://connect.quid.li",
   "repository": {
     "url": "https://github.com/Quidli/connect-mcp",
@@ -13,7 +13,7 @@
     {
       "registryType": "npm",
       "identifier": "@quidli/connect-mcp",
-      "version": "0.6.2",
+      "version": "0.6.3",
       "transport": {
         "type": "stdio"
       }

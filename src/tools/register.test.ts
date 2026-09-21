@@ -31,7 +31,7 @@ function createMockServer(): {
 }
 
 describe('registerTools', () => {
-  it('registers exactly 10 tools without agent routes', () => {
+  it('registers exactly 14 tools without agent routes', () => {
     const { server, handlers } = createMockServer();
     const client = { request: vi.fn() } as unknown as ConnectClient;
 
@@ -203,7 +203,7 @@ describe('registerTools', () => {
     }
   });
 
-  it('marks connect_drop as the only non-read-only tool', () => {
+  it('marks spend tools as non-read-only', () => {
     const { server, annotations } = createMockServer();
     registerTools(server, { request: vi.fn() } as unknown as ConnectClient);
 
@@ -211,7 +211,7 @@ describe('registerTools', () => {
       .filter(([, anno]) => anno.readOnlyHint !== true)
       .map(([name]) => name);
 
-    expect(writers).toEqual(['connect_drop']);
+    expect(writers.sort()).toEqual(['connect_drop', 'connect_trust_create', 'connect_trust_revoke'].sort());
     expect(annotations.get('connect_drop')!.destructiveHint).toBe(true);
   });
 

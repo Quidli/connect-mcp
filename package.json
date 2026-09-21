@@ -1,6 +1,6 @@
 {
   "name": "@quidli/connect-mcp",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "MCP server for agent identity and reputation: resolve social handles to wallet addresses, score onchain reputation, and send USDC from any MCP client.",
   "keywords": [
     "mcp",
