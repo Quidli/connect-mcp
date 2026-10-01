@@ -371,8 +371,12 @@ mistake.
 | `connect_scores_by_account`  | Scores for one linked account                             |
 | `connect_scores_by_username` | Scores by Connect username                                |
 | `connect_me`                 | API key owner profile, scores, and linked accounts — **API key only** |
-| `connect_drop`               | Smart Send (EVM batch or Solana SOL/SPL) — **API key only** |
+| `connect_drop`               | Smart Send (EVM batch or Solana SOL/SPL); accepts `trustFilter` to gate recipients by trust graph — **API key only** |
 | `connect_drop_balance`       | Smart Send wallet balances on a chain — **API key only**  |
+| `connect_trust_create`       | Create an on-chain trust attestation (EAS on Base) — **API key only** |
+| `connect_trust_check`        | Check whether identities sit in a trust graph at depth 1 |
+| `connect_trust_graph`        | List outgoing/incoming trust edges for an identity |
+| `connect_trust_revoke`       | Revoke active trust attestations by target — **API key only** |
 
 
 Ask your client to use these tools when you need Connect data or actions.
