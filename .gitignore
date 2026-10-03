@@ -1,2 +1,7 @@
 node_modules/
 dist/
+
+# build artefacts - ship via GitHub Releases, not git
+Quidli-Connect.mcpb
+*.mcpb
+extension/

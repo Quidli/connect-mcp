@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Restore mirror-only files
         run: |
-          find .github/mirror-only -type f 2>/dev/null | while read -r s; do
+          find .github/mirror-only -type f ! -name MANIFEST.txt 2>/dev/null | while read -r s; do
             d="${s#.github/mirror-only/}"; mkdir -p "$(dirname "$d")"
             cmp -s "$s" "$d" 2>/dev/null || { cp "$s" "$d"; echo "restored $d"; }
           done
