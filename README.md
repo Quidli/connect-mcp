@@ -4,7 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dw/@quidli/connect-mcp.svg)](https://www.npmjs.com/package/@quidli/connect-mcp)
 [![license](https://img.shields.io/npm/l/@quidli/connect-mcp.svg)](./LICENSE)
 
-Open payments for multiplayer agents, powered by social reputation. Resolve a social handle to a wallet, check reputation, and send tokens — from Cursor, Claude Desktop, Claude Code, or any MCP-compatible client.
+Open payments for multiplayer agents, powered by onchain reputation. Resolve a social handle to a wallet, check its onchain reputation, and send tokens — from Cursor, Claude Desktop, Claude Code, or any MCP-compatible client.
 
 Multiplayer means parties who don't already know each other — an agent paying a person, or another agent, with no prior relationship and no account to fall back on. Connect is how it verifies who it's dealing with before sending anything.
 
@@ -51,6 +51,8 @@ Then ask your agent:
 ```
 
 Resolves across GitHub, X, Telegram, Discord, LinkedIn, Farcaster, email and phone — and generates a wallet for people who have never used Quidli.
+
+Then score what you find: `connect_scores_batch` returns onchain reputation for a batch of identities.
 
 Lookup, scores, and price run without a key under a shared anonymous quota. Add a [Connect API key](https://connect.quid.li) for higher limits, your own profile (`connect_me`), and Smart Send.
 

@@ -1,0 +1,45 @@
+name: Restore mirror copy edits
+# The release sync stages packages/connect-mcp/** from sns-backend then runs
+# rsync -a --delete, excluding only .git/, .github/ and mcp.json. Anything else
+# this repo holds is deleted. .github/ survives, so this restores it afterwards.
+# Both steps are no-ops once upstream carries the same content.
+on:
+  push: {branches: [main]}
+  workflow_dispatch:
+permissions: {contents: write}
+concurrency: {group: restore-mirror-copy}
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore mirror-only files
+        run: |
+          find .github/mirror-only -type f 2>/dev/null | while read -r s; do
+            d="${s#.github/mirror-only/}"; mkdir -p "$(dirname "$d")"
+            cmp -s "$s" "$d" 2>/dev/null || { cp "$s" "$d"; echo "restored $d"; }
+          done
+      - name: Re-apply copy edits
+        run: |
+          python3 - <<'PY'
+          import json,os
+          D0="MCP server for agent identity and reputation: resolve social handles to wallet addresses, score onchain reputation, and send USDC from any MCP client."
+          D1="Onchain reputation and identity for AI agents: score onchain reputation across social accounts, resolve handles to EVM and Solana wallet addresses, and send USDC from any MCP client."
+          O0="Open payments for multiplayer agents, powered by social reputation. Resolve a social handle to a wallet, check reputation, and send tokens \u2014 from Cursor, Claude Desktop, Claude Code, or any MCP-compatible client."
+          O1="Open payments for multiplayer agents, powered by onchain reputation. Resolve a social handle to a wallet, check its onchain reputation, and send tokens \u2014 from Cursor, Claude Desktop, Claude Code, or any MCP-compatible client."
+          A="Resolves across GitHub, X, Telegram, Discord, LinkedIn, Farcaster, email and phone \u2014 and generates a wallet for people who have never used Quidli."
+          R=A+"\n\nThen score what you find: `connect_scores_batch` returns onchain reputation for a batch of identities."
+          for p,o,n in [("README.md",O0,O1),("README.md",A,R),("package.json",D0,D1),("server.json",D0,D1)]:
+              if not os.path.exists(p): continue
+              t=open(p,encoding="utf-8").read()
+              if n in t or t.count(o)!=1: continue
+              open(p,"w",encoding="utf-8").write(t.replace(o,n)); print("reapplied",p)
+          for f in ("package.json","server.json"): json.load(open(f))
+          PY
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git diff --cached --quiet || { git commit -m "chore: restore mirror content after sync"; git push; }
