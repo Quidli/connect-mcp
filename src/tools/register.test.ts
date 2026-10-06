@@ -4,30 +4,31 @@ import type { ConnectClient } from '../client.js';
 import { CONNECT_MCP_TOOL_NAMES, registerTools } from './register.js';
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
-type ToolAnnotations = { readOnlyHint?: boolean; destructiveHint?: boolean };
+type ToolAnnotations = { title?: string; readOnlyHint?: boolean; destructiveHint?: boolean };
+type ToolConfig = {
+  title?: string;
+  description?: string;
+  inputSchema?: unknown;
+  annotations?: ToolAnnotations;
+};
 
 function createMockServer(): {
   server: McpServer;
   handlers: Map<string, ToolHandler>;
   annotations: Map<string, ToolAnnotations>;
+  titles: Map<string, string | undefined>;
 } {
   const handlers = new Map<string, ToolHandler>();
   const annotations = new Map<string, ToolAnnotations>();
+  const titles = new Map<string, string | undefined>();
   const server = {
-    tool: vi.fn(
-      (
-        name: string,
-        _desc: string,
-        _schema: unknown,
-        anno: ToolAnnotations,
-        handler: ToolHandler,
-      ) => {
-        handlers.set(name, handler);
-        annotations.set(name, anno);
-      },
-    ),
+    registerTool: vi.fn((name: string, config: ToolConfig, handler: ToolHandler) => {
+      handlers.set(name, handler);
+      annotations.set(name, config.annotations ?? {});
+      titles.set(name, config.title);
+    }),
   } as unknown as McpServer;
-  return { server, handlers, annotations };
+  return { server, handlers, annotations, titles };
 }
 
 describe('registerTools', () => {
@@ -200,6 +201,20 @@ describe('registerTools', () => {
         typeof annotations.get(name)!.readOnlyHint,
         `${name} has no readOnlyHint`,
       ).toBe('boolean');
+    }
+  });
+
+  // The Anthropic Connectors Directory requires a title on every tool, and the
+  // submission portal rejects a server that is missing one.
+  it('gives every tool a non-empty title, top-level and in annotations', () => {
+    const { server, titles, annotations } = createMockServer();
+    const client = { request: vi.fn() } as unknown as ConnectClient;
+
+    registerTools(server, client);
+
+    for (const name of CONNECT_MCP_TOOL_NAMES) {
+      expect(titles.get(name), `${name} top-level title`).toBeTruthy();
+      expect(annotations.get(name)?.title, `${name} annotations.title`).toBeTruthy();
     }
   });
 
