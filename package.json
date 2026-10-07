@@ -1,6 +1,6 @@
 {
   "name": "@quidli/connect-mcp",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "Onchain reputation and identity for AI agents: score onchain reputation across social accounts, resolve handles to EVM and Solana wallet addresses, and send USDC from any MCP client.",
   "keywords": [
     "mcp",

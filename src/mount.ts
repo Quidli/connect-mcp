@@ -74,13 +74,51 @@ export function isConnectMcpHost(hostname: string, env: NodeJS.ProcessEnv = proc
 // gets its 406.
 const CANONICAL_ACCEPT = 'application/json, text/event-stream';
 
-export function normalizeAcceptHeader(req: Pick<Request, 'headers'>): void {
+type NormalizableRequest = Pick<Request, 'headers'> & { rawHeaders?: string[] };
+
+// The SDK's StreamableHTTPServerTransport (>= 1.26) is a wrapper that converts the
+// Node request into a web-standard Request using @hono/node-server. That converter
+// rebuilds the header set from `req.rawHeaders` and never reads `req.headers`, so
+// writing only `req.headers.accept` is invisible to the transport and the 406 still
+// fires. Write both: `headers` for anything else in the stack, `rawHeaders` for the
+// SDK. Duplicate Accept entries are collapsed, because `new Headers()` would comma
+// join them back into a value we did not intend.
+function setAcceptHeader(req: NormalizableRequest, value: string): void {
+  req.headers.accept = value;
+
+  const raw = req.rawHeaders;
+  if (!Array.isArray(raw)) {
+    return;
+  }
+
+  const rebuilt: string[] = [];
+  let written = false;
+  for (let i = 0; i + 1 < raw.length; i += 2) {
+    const key = raw[i]!;
+    if (key.toLowerCase() === 'accept') {
+      if (!written) {
+        rebuilt.push(key, value);
+        written = true;
+      }
+      continue;
+    }
+    rebuilt.push(key, raw[i + 1]!);
+  }
+  if (!written) {
+    rebuilt.push('Accept', value);
+  }
+
+  raw.length = 0;
+  raw.push(...rebuilt);
+}
+
+export function normalizeAcceptHeader(req: NormalizableRequest): void {
   const raw = req.headers.accept;
   const value = Array.isArray(raw) ? raw.join(',') : (raw ?? '');
 
   // No Accept header means "anything" per RFC 9110.
   if (!value.trim()) {
-    req.headers.accept = CANONICAL_ACCEPT;
+    setAcceptHeader(req, CANONICAL_ACCEPT);
     return;
   }
 
@@ -93,7 +131,7 @@ export function normalizeAcceptHeader(req: Pick<Request, 'headers'>): void {
     types.includes(type) || types.includes('*/*') || types.includes(`${type.split('/')[0]}/*`);
 
   if (permits('application/json') && permits('text/event-stream')) {
-    req.headers.accept = CANONICAL_ACCEPT;
+    setAcceptHeader(req, CANONICAL_ACCEPT);
   }
 }
 

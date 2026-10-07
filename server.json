@@ -3,7 +3,7 @@
   "name": "io.github.quidli/connect-mcp",
   "title": "Quidli Connect",
   "description": "Onchain reputation and identity for AI agents: score onchain reputation across social accounts, resolve handles to EVM and Solana wallet addresses, and send USDC from any MCP client.",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "websiteUrl": "https://connect.quid.li",
   "repository": {
     "url": "https://github.com/Quidli/connect-mcp",
@@ -13,7 +13,7 @@
     {
       "registryType": "npm",
       "identifier": "@quidli/connect-mcp",
-      "version": "0.6.4",
+      "version": "0.6.5",
       "transport": {
         "type": "stdio"
       }
