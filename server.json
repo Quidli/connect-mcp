@@ -3,7 +3,7 @@
   "name": "io.github.Quidli/connect-mcp",
   "title": "Quidli Connect",
   "description": "Resolve social handles to wallets, score onchain reputation, pay in any ERC-20, SPL or native.",
-  "version": "0.6.9",
+  "version": "0.6.10",
   "websiteUrl": "https://connect.quid.li",
   "repository": {
     "url": "https://github.com/Quidli/connect-mcp",
@@ -13,7 +13,7 @@
     {
       "registryType": "npm",
       "identifier": "@quidli/connect-mcp",
-      "version": "0.6.9",
+      "version": "0.6.10",
       "transport": {
         "type": "stdio"
       }

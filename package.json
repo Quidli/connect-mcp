@@ -1,6 +1,6 @@
 {
   "name": "@quidli/connect-mcp",
-  "version": "0.6.9",
+  "version": "0.6.10",
   "description": "Wallet lookup, onchain reputation and payments for multiplayer agents. Resolve any social handle - email, phone, X, Telegram, Discord, GitHub, LinkedIn, Farcaster and more - to an EVM or Solana wallet, score it from online social histories, and send agent payments in any ERC-20, SPL or native token. Includes creation of trust graphs on Base, built from EAS attestations.",
   "keywords": [
     "mcp",

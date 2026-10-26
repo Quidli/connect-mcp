@@ -162,9 +162,9 @@ export const trustCreateInputSchema = {
   to: z
     .array(trustIdentitySchema)
     .min(1)
-    .max(250)
+    .max(50)
     .describe(
-      'Identities to trust (wallet, social, or Connect username). Level, context, and expiresIn apply to every entry. Maximum 250.',
+      'Identities to trust (wallet, social, or Connect username). Level, context, and expiresIn apply to every entry. Maximum 50.',
     ),
   level: z.number().int().min(1).max(100).describe('Trust level 1–100'),
   context: z.string().max(64).optional().describe('Optional context such as team:quidli'),
