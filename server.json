@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Quidli/connect-mcp",
   "title": "Quidli Connect",
-  "description": "Resolve social handles to wallets, score onchain reputation, and make agent payments in USDC.",
-  "version": "0.6.7",
+  "description": "Resolve social handles to wallets, score onchain reputation, pay in any ERC-20, SPL or native.",
+  "version": "0.6.9",
   "websiteUrl": "https://connect.quid.li",
   "repository": {
     "url": "https://github.com/Quidli/connect-mcp",
@@ -13,7 +13,7 @@
     {
       "registryType": "npm",
       "identifier": "@quidli/connect-mcp",
-      "version": "0.6.7",
+      "version": "0.6.9",
       "transport": {
         "type": "stdio"
       }

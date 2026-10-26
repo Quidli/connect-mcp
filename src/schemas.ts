@@ -159,7 +159,13 @@ export const dropInputSchema = {
 export const trustIdentitySchema = linkedAccountSchema;
 
 export const trustCreateInputSchema = {
-  to: trustIdentitySchema.describe('Identity to trust (wallet, social, or Connect username)'),
+  to: z
+    .array(trustIdentitySchema)
+    .min(1)
+    .max(250)
+    .describe(
+      'Identities to trust (wallet, social, or Connect username). Level, context, and expiresIn apply to every entry. Maximum 250.',
+    ),
   level: z.number().int().min(1).max(100).describe('Trust level 1–100'),
   context: z.string().max(64).optional().describe('Optional context such as team:quidli'),
   expiresIn: z.number().int().positive().optional().describe('Optional lifetime in seconds'),

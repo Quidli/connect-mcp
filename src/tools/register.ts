@@ -214,7 +214,7 @@ export function registerTools(server: McpServer, client: ConnectClient): void {
     'connect_trust_create',
     {
       title: 'Create Trust Attestation',
-      description: 'Create a unidirectional trust attestation on Base (EAS) from the API key owner embedded wallet to a wallet or social identity. Identical active attestations are returned without a new transaction. Requires CONNECT_API_KEY, Smart Send attestation signer enrolled, and ETH on Base for gas.',
+      description: 'Create unidirectional trust attestations on Base (EAS) from the API key owner embedded wallet to one or more wallets or social identities, in a single transaction. Identical active attestations are returned without a new transaction. Recipients still provisioning are reported as processing while the others are attested. Requires CONNECT_API_KEY, Smart Send attestation signer enrolled, and ETH on Base for gas when a new attestation is submitted.',
       inputSchema: trustCreateInputSchema,
       annotations: { title: 'Create Trust Attestation', ...SPENDS_FUNDS },
     },
