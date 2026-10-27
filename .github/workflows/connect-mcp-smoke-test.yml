@@ -1,11 +1,17 @@
 name: Connect MCP Smoke Test
 
-# Scheduled health check that installs @quidli/connect-mcp fresh and
-# calls the hosted MCP server's tools/list via the MCP SDK client.
+# Scheduled health check that installs @quidli/connect-mcp fresh from the
+# registry and drives the published binary over stdio with raw JSON-RPC.
 # Each successful run counts as one npm download of @quidli/connect-mcp.
 #
+# The install goes into a scratch directory OUTSIDE the checkout on purpose:
+# this repo's own package.json is named @quidli/connect-mcp, and npm refuses to
+# install a package underneath a package of the same name (ENOSELF).
+# smoke-test.mjs resolves the binary from process.cwd(), so the test step runs
+# with the scratch dir as its working directory.
+#
 # Interval: every 6 hours (00:00, 06:00, 12:00, 18:00 UTC).
-# Also triggerable manually via Actions → Run workflow.
+# Also triggerable manually via Actions -> Run workflow.
 on:
   schedule:
     - cron: "0 */6 * * *"
@@ -28,14 +34,20 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Clean npm cache (ensure fresh install, no cache reuse)
+      - name: Clean npm cache (force a fresh registry fetch, no cache reuse)
         run: npm cache clean --force
 
-      - name: Install @quidli/connect-mcp (fresh, prefer online)
-        run: npm install --prefer-online @quidli/connect-mcp
+      - name: Install @quidli/connect-mcp into a scratch dir
+        run: |
+          mkdir -p "$RUNNER_TEMP/smoke"
+          cd "$RUNNER_TEMP/smoke"
+          npm init -y >/dev/null
+          npm install --prefer-online @quidli/connect-mcp
 
-      - name: Verify installed packages
-        run: npm list --depth=0 @quidli/connect-mcp @modelcontextprotocol/sdk
+      - name: Verify the installed package
+        working-directory: ${{ runner.temp }}/smoke
+        run: npm list --depth=0 @quidli/connect-mcp
 
       - name: Run integration smoke test
-        run: node smoke-test.mjs
+        working-directory: ${{ runner.temp }}/smoke
+        run: node "$GITHUB_WORKSPACE/smoke-test.mjs"

@@ -1,2 +1,3 @@
 Restored to repo root after each sync by .github/workflows/restore-mirror-copy.yml
 docs/skills/connect-trust/SKILL.md
+smoke-test.mjs
