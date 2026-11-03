@@ -406,6 +406,56 @@ World Chain Sepolia (`4801`) is also listed, as a testnet.
 
 Ask your client to use these tools when you need Connect data or actions.
 
+## Trust graph
+
+Connect writes trust attestations on Base via EAS. An attestation is
+unidirectional — you vouch for someone — and anyone can verify it without
+asking Connect, because it lives onchain rather than in a Quidli database.
+
+### Vouch for people
+
+`connect_trust_create` takes up to 50 identities and attests them in a single
+transaction, so gas is paid once rather than per person. `level` (1–100),
+`context` and `expiresIn` apply to every entry in the batch.
+
+```json
+{
+  "to": [
+    { "type": "github",    "username": "alice" },
+    { "type": "farcaster", "username": "bob"   },
+    { "type": "wallet",    "id": "0x1234..."   }
+  ],
+  "level": 80,
+  "context": "team:quidli"
+}
+```
+
+Identical active attestations are returned without submitting a new
+transaction. Recipients still being provisioned come back as `processing`
+while the rest are attested.
+
+Requires an API key, the Smart Send attestation signer enrolled, and ETH on
+Base for gas when a new attestation is submitted.
+
+### Pay only people you trust
+
+`connect_drop` accepts a `trustFilter` that keeps recipients inside the
+sender's trust graph:
+
+```json
+{ "trustFilter": { "mode": "skip", "context": "team:quidli" } }
+```
+
+`require` fails the drop if any recipient is outside the graph; `skip` pays
+the ones inside it and drops the others. Omit `context` to match any context.
+
+### Read and revoke
+
+`connect_trust_check` reports whether identities sit in a trust graph at
+depth 1. `connect_trust_graph` lists outgoing or incoming edges for an
+identity. `connect_trust_revoke` revokes active attestations to a target,
+optionally scoped by context.
+
 ## Contributing
 
 This repository is a read-only mirror, regenerated on every release — changes
