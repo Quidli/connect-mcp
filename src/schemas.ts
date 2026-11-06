@@ -37,6 +37,16 @@ const dropRecipientSchema = z
     type: dropRecipientTypeSchema,
     id: z.string().optional(),
     username: z.string().optional(),
+    tokenId: z
+      .string()
+      .regex(/^\d+$/)
+      .optional()
+      .describe('ERC-721 or ERC-1155 token id. Required on every recipient when tokenStandard is erc721 or erc1155.'),
+    tokenAmount: z
+      .string()
+      .regex(/^\d+$/)
+      .optional()
+      .describe('ERC-1155 quantity of tokenId. Required on every recipient when tokenStandard is erc1155. At least 1. The same id may be sent to several recipients.'),
   })
   .passthrough();
 
@@ -128,7 +138,13 @@ export const dropInputSchema = {
     .nullable()
     .optional()
     .describe(
-      'EVM ERC-20 contract or Solana SPL mint. Omit or null for the native token (ETH/POL/AVAX, or SOL on 1399811149). Do not use the zero address.',
+      'EVM ERC-20 contract, ERC-721 collection, ERC-1155 contract, or Solana SPL mint. Omit or null for the native token (ETH/POL/AVAX, or SOL on 1399811149). Do not use the zero address.',
+    ),
+  tokenStandard: z
+    .enum(['erc721', 'erc1155'])
+    .optional()
+    .describe(
+      'Set to erc721 to send one NFT per recipient (tokenId, no amount). Set to erc1155 to send a quantity of one id per recipient (tokenId and tokenAmount). Omit for native, ERC-20, or SPL. An existing EIP-7702 delegation must be replaced first. A Smart Send wallet on the previous Privy policy must re-enable Smart Send.',
     ),
   recipients: z
     .array(dropRecipientSchema)
