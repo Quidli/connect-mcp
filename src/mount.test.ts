@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isConnectMcpHost, normalizeAcceptHeader, resolveEmbeddedApiBaseUrl } from './mount.js';
+import { applyCorsHeaders, isConnectMcpHost, normalizeAcceptHeader, resolveEmbeddedApiBaseUrl } from './mount.js';
 
 describe('mount helpers', () => {
   it('detects default MCP hostnames', () => {
@@ -26,6 +26,33 @@ describe('mount helpers', () => {
     expect(
       resolveEmbeddedApiBaseUrl(8080, { CONNECT_MCP_API_BASE_URL: 'http://127.0.0.1:3001/' }),
     ).toBe('http://127.0.0.1:3001');
+  });
+});
+
+describe('applyCorsHeaders', () => {
+  const headers = () => {
+    const set: Record<string, string> = {};
+    applyCorsHeaders({ setHeader: (name: string, value: string) => { set[name] = value; } } as never);
+    return set;
+  };
+
+  it('opens the endpoint to any origin', () => {
+    expect(headers()['Access-Control-Allow-Origin']).toBe('*');
+  });
+
+  it('allows only the headers an anonymous MCP call needs', () => {
+    expect(headers()['Access-Control-Allow-Headers']).toBe('content-type, accept, mcp-protocol-version');
+  });
+
+  // The two assertions that keep this anonymous-only. A browser may not send a
+  // key, and may not attach cookies, so nothing authenticated can originate
+  // from a page even though every origin is allowed.
+  it('never allows x-api-key', () => {
+    expect(headers()['Access-Control-Allow-Headers']).not.toContain('x-api-key');
+  });
+
+  it('never allows credentials', () => {
+    expect(headers()['Access-Control-Allow-Credentials']).toBeUndefined();
   });
 });
 

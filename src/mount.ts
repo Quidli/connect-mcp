@@ -135,6 +135,20 @@ export function normalizeAcceptHeader(req: NormalizableRequest): void {
   }
 }
 
+// A browser refuses a cross-origin MCP call unless the server opts in, which is
+// why a page cannot call this endpoint today. Only the anonymous surface is
+// opened: x-api-key is deliberately absent from the allowed headers, so a
+// browser cannot send one at all, and credentials are never allowed, so cookies
+// are not attached either. Keyed calls stay server-side, where they belong.
+const CORS_ALLOW_HEADERS = 'content-type, accept, mcp-protocol-version';
+
+export function applyCorsHeaders(res: Pick<Response, 'setHeader'>): void {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', CORS_ALLOW_HEADERS);
+  res.setHeader('Access-Control-Max-Age', '86400');
+}
+
 export function mountConnectMcpHttp(router: IRouter, options: ConnectMcpMountOptions): void {
   const { baseUrl } = options;
   const env = options.env ?? process.env;
@@ -144,11 +158,20 @@ export function mountConnectMcpHttp(router: IRouter, options: ConnectMcpMountOpt
     res.json({ ok: true, service: 'quidli-connect-mcp' });
   });
 
+  // Answered before the hosted gate on purpose: a preflight carries no body and
+  // no key, so running it through the gate would spend anonymous quota on a
+  // request that is not a tool call, and could answer it with a 429.
+  router.options('/', (_req: Request, res: Response) => {
+    applyCorsHeaders(res);
+    res.status(204).end();
+  });
+
   // Stateless mode: each request creates a fresh server+transport.
   // No in-memory session map, so Cloud Run restarts / multiple instances
   // never cause "Missing or invalid MCP session" errors.
   router.all('/', async (req: Request, res: Response) => {
     normalizeAcceptHeader(req);
+    applyCorsHeaders(res);
 
     const gate = gateHostedMcpRequest(req, { env, anonymousQuota });
     if (!gate.ok) {

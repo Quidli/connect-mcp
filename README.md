@@ -36,6 +36,9 @@ Then ask your agent:
 
 > Resolve the GitHub handle `justinquidli` to a wallet.
 
+<!-- connect-example:start
+{"tool": "connect_lookup", "arguments": {"recipients": [{"type": "github", "username": "justinquidli"}]}, "compare": ["results.0.ethWalletAddress", "results.0.solWalletAddress"]}
+-->
 ```json
 {
   "status": "completed",
@@ -49,6 +52,7 @@ Then ask your agent:
   ]
 }
 ```
+<!-- connect-example:end -->
 
 Resolves across GitHub, X, Telegram, Discord, LinkedIn, Farcaster, email and phone — and generates a wallet for people who have never used Quidli.
 
@@ -76,7 +80,7 @@ Get a Connect API key at [connect.quid.li](https://connect.quid.li) → **Enable
 
 ## Hosted (recommended)
 
-Zero local setup. Lookup, scores, agent, and price work without an API key (shared anonymous quota). Add a key for higher limits, your profile (`connect_me`), and Smart Send.
+Zero local setup. Lookup, scores, and price work without an API key (shared anonymous quota). Add a key for higher limits, your profile (`connect_me`), and Smart Send.
 
 ### Cursor
 
@@ -160,7 +164,7 @@ Without a key, `initialize` / `tools/list` always succeed. Anonymous `tools/call
 1. Go to [grok.com/connectors](https://grok.com/connectors) and select **Custom**.
 2. Enter the server URL: `https://mcp.connect.quid.li`
 
-This gives Grok access to the anonymous-tier tools -- lookup, scores, agent, and price -- under the shared quota.
+This gives Grok access to the anonymous-tier tools -- lookup, scores, and price -- under the shared quota.
 
 **Current limitation:** Grok's custom connector UI does not currently support attaching an API key or custom header. That means `connect_me`, `connect_drop`, and `connect_drop_balance` (all **API key only**) are not usable through Grok yet -- calls to them will return an unauthorized error. This isn't a `connect-mcp` limitation; it's Grok's custom-connector setup not exposing an auth field at this time.
 
@@ -362,7 +366,7 @@ mistake.
 
 ## Supported chains
 
-`connect_get_chains` (REST: `GET /chains`) is the source of truth and needs no key. As of 2026-10-14 it lists these mainnets, each with `lookup` and `drop` enabled:
+`connect_get_chains` (REST: `GET /chains`) is the source of truth and needs no key. As of 2026-11-07 it lists these mainnets, each with `lookup` and `drop` enabled:
 
 | Chain | Chain ID | Native token |
 | ----- | -------- | ------------ |
@@ -374,6 +378,7 @@ mistake.
 | Avalanche | 43114 | AVAX |
 | World Chain | 480 | ETH |
 | Monad | 143 | MON |
+| Arc | 5042 | USDC |
 | Robinhood Chain | 4663 | ETH |
 | Solana | 1399811149 | SOL |
 
@@ -381,6 +386,7 @@ World Chain Sepolia (`4801`) is also listed, as a testnet.
 
 - Social handles resolve on every chain: EVM chains pay the recipient's `ethWalletAddress`, Solana pays their `solWalletAddress`.
 - `connect_drop` sends native tokens when `tokenContract` is omitted. For an ERC-20 or SPL token you pass its contract address or mint.
+- **On Arc (`5042`) the native token is USDC**, not ETH. Omitting `tokenContract` there sends USDC.
 - **Balance coverage depends on the chain.** `connect_drop_balance` returns the native balance everywhere. ERC-20 balances come from a per-chain provider: Moralis on Monad and Base, Blockscout on Robinhood Chain, and other chains may return only native plus featured tokens. Zero balances are omitted, spam tokens can appear, and a token the provider doesn't index can be missing. If you know its contract address you can still send it by passing `tokenContract`.
 
 ## Tools
@@ -396,7 +402,7 @@ World Chain Sepolia (`4801`) is also listed, as a testnet.
 | `connect_scores_by_account`  | Scores for one linked account                             |
 | `connect_scores_by_username` | Scores by Connect username                                |
 | `connect_me`                 | API key owner profile, scores, and linked accounts — **API key only** |
-| `connect_drop`               | Smart Send (EVM batch or Solana SOL/SPL); accepts `trustFilter` to gate recipients by trust graph — **API key only** |
+| `connect_drop`               | Smart Send (EVM batch, Solana SOL/SPL, or ERC-721/ERC-1155 NFTs); accepts `trustFilter` to gate recipients by trust graph — **API key only** |
 | `connect_drop_balance`       | Smart Send wallet balances on a chain — **API key only**. Token coverage varies by chain, see [Supported chains](#supported-chains) |
 | `connect_trust_create`       | Create one or more on-chain trust attestations in one EAS transaction (Base) — **API key only** |
 | `connect_trust_check`        | Check whether identities sit in a trust graph at depth 1 |
@@ -405,6 +411,59 @@ World Chain Sepolia (`4801`) is also listed, as a testnet.
 
 
 Ask your client to use these tools when you need Connect data or actions.
+
+## Sending NFTs
+
+`connect_drop` sends ERC-721 and ERC-1155 tokens on EVM chains, in the same
+call shape as a token send. Set `tokenStandard` and put the ids on the
+recipients.
+
+### One NFT per recipient (ERC-721)
+
+Set `tokenStandard` to `erc721`, `tokenContract` to the collection, and
+`tokenId` on every recipient. Do not pass an amount. Connect issues one
+`safeTransferFrom` per NFT.
+
+```json
+{
+  "chainId": 8453,
+  "tokenStandard": "erc721",
+  "tokenContract": "0xYourCollection",
+  "recipients": [
+    { "type": "farcaster", "username": "alice", "tokenId": "1" },
+    { "type": "twitter", "username": "bob", "tokenId": "2" }
+  ]
+}
+```
+
+### Quantities of one id (ERC-1155)
+
+Set `tokenStandard` to `erc1155`, and give every recipient both `tokenId` and
+`tokenAmount` (at least 1). The same id can go to several recipients.
+
+```json
+{
+  "chainId": 8453,
+  "tokenStandard": "erc1155",
+  "tokenContract": "0xYourContract",
+  "recipients": [
+    { "type": "farcaster", "username": "alice", "tokenId": "7", "tokenAmount": "3" },
+    { "type": "github", "username": "bob", "tokenId": "7", "tokenAmount": "1" }
+  ]
+}
+```
+
+Notes:
+
+- `tokenId` and `tokenAmount` are decimal integer strings, like the amounts on
+  a token send.
+- Omit `tokenStandard` entirely for native, ERC-20 and SPL sends. Nothing about
+  those changes.
+- An EIP-7702 delegation signed before the matching standard has to be replaced
+  first, and a Smart Send wallet enrolled under the previous Privy policy has to
+  re-enable Smart Send.
+- NFT sends are **API key only**, and `connect_get_chains` remains the source of
+  truth for which chains accept a drop.
 
 ## Trust graph
 
