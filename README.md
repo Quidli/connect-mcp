@@ -58,7 +58,7 @@ Resolves across GitHub, X, Telegram, Discord, LinkedIn, Farcaster, email and pho
 
 Then score what you find: `connect_scores_batch` returns onchain reputation for a batch of identities.
 
-Lookup, scores, and price run without a key under a shared anonymous quota. Add a [Connect API key](https://connect.quid.li) for higher limits, your own profile (`connect_me`), and Smart Send.
+Lookup, scores, trust reads, and price run without a key under a shared anonymous quota. Add a [Connect API key](https://connect.quid.li) for higher limits, your own profile (`connect_me`), and Smart Send.
 
 ---
 
@@ -68,7 +68,7 @@ Lookup, scores, and price run without a key under a shared anonymous quota. Add 
 |                 | **Hosted** (`mcp.connect.quid.li`)                                                   | **Local** (`npx @quidli/connect-mcp`)                                                      |
 | --------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
 | **Setup**       | Add a URL in MCP settings                                                            | Run a local process via `npx`                                                              |
-| **Auth**        | Optional API key. Without a key: lookup/scores under a shared anonymous quota; price/chains are public | API key, x402 pay-per-call, or none for lookup/scores                                |
+| **Auth**        | Optional API key. Without a key: lookup/scores/trust reads under a shared anonymous quota; price/chains are public | API key, x402 pay-per-call, or none for lookup/scores                                |
 | **Pros**        | No install; try without a key; always on Quidli infrastructure                       | Wallet private key never leaves your machine; pay per call with USDC instead of an API key |
 | **Cons**        | Anonymous traffic shares a global rate limit; no pay-per-call billing                | Requires Node.js 20+; `npx` may download the package on first run                          |
 | **Limitations** | Cannot use x402 / wallet auth — do **not** send a private key to the hosted endpoint | x402 mode needs USDC on Base (mainnet `8453`); `connect_drop` requires an API key          |
