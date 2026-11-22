@@ -24,7 +24,7 @@ claude mcp add --transport http quidli https://mcp.connect.quid.li/
 
 **Claude Desktop:** **Settings → Connectors → Add custom connector**, URL `https://mcp.connect.quid.li`
 
-**Local (any client)** — runs on your machine instead of the hosted endpoint:
+**Local (any client)** — installs from npm and runs on your machine:
 
 ```bash
 npx -y @quidli/connect-mcp
