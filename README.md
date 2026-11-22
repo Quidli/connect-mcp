@@ -14,6 +14,18 @@ Public repository: [github.com/Quidli/connect-mcp](https://github.com/Quidli/con
 
 No API key required.
 
+```bash
+npx -y @quidli/connect-mcp
+```
+
+Runs on your machine, works in any MCP client. To register it with Claude Code:
+
+```bash
+claude mcp add quidli -- npx -y @quidli/connect-mcp
+```
+
+**Or use the hosted endpoint** — nothing to install, same 14 tools:
+
 **Claude Code:**
 
 ```bash
@@ -23,12 +35,6 @@ claude mcp add --transport http quidli https://mcp.connect.quid.li/
 **Cursor:** [Add to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=quidli-connect&config=eyJ1cmwiOiJodHRwczovL21jcC5jb25uZWN0LnF1aWQubGkifQ==) (or paste that link into **Settings → MCP → Add new MCP server**)
 
 **Claude Desktop:** **Settings → Connectors → Add custom connector**, URL `https://mcp.connect.quid.li`
-
-**Local (any client)** — runs on your machine instead of the hosted endpoint:
-
-```bash
-npx -y @quidli/connect-mcp
-```
 
 See [Choose how to connect](#choose-how-to-connect) below for API keys, x402 wallet pay-per-call, and full config snippets.
 
