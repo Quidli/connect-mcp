@@ -366,7 +366,7 @@ mistake.
 
 ## Supported chains
 
-`connect_get_chains` (REST: `GET /chains`) is the source of truth and needs no key. As of 2026-11-07 it lists these mainnets, each with `lookup` and `drop` enabled:
+`connect_get_chains` (REST: `GET /chains`) is the source of truth and needs no key. As of 2026-11-23 it lists these mainnets, each with `lookup` and `drop` enabled:
 
 | Chain | Chain ID | Native token |
 | ----- | -------- | ------------ |
@@ -379,6 +379,7 @@ mistake.
 | World Chain | 480 | ETH |
 | Monad | 143 | MON |
 | Arc | 5042 | USDC |
+| Celo | 42220 | CELO |
 | Robinhood Chain | 4663 | ETH |
 | Solana | 1399811149 | SOL |
 
