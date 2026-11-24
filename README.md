@@ -366,7 +366,7 @@ mistake.
 
 ## Supported chains
 
-`connect_get_chains` (REST: `GET /chains`) is the source of truth and needs no key. As of 2026-11-23 it lists these mainnets, each with `lookup` and `drop` enabled:
+`connect_get_chains` (REST: `GET /chains`) is the source of truth and needs no key. As of 2026-11-24 it lists these mainnets, each with `lookup` and `drop` enabled:
 
 | Chain | Chain ID | Native token |
 | ----- | -------- | ------------ |
@@ -521,3 +521,7 @@ optionally scoped by context.
 This repository is a read-only mirror, regenerated on every release — changes
 committed here are overwritten. Please open an issue rather than a pull request.
 See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Listed on
+
+[![Glama](https://glama.ai/mcp/servers/Quidli/connect-mcp/badges/score.svg)](https://glama.ai/mcp/servers/Quidli/connect-mcp)
