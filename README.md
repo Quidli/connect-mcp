@@ -4,7 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dw/@quidli/connect-mcp.svg)](https://www.npmjs.com/package/@quidli/connect-mcp)
 [![license](https://img.shields.io/npm/l/@quidli/connect-mcp.svg)](./LICENSE)
 
-Open payments for multiplayer agents, powered by onchain reputation. Resolve a social handle to a wallet, check its onchain reputation, and send tokens — from Cursor, Claude Desktop, Claude Code, or any MCP-compatible client.
+Open payments for multiplayer agents, powered by onchain reputation. Resolve a social handle to a wallet, check its onchain reputation, and send tokens from Cursor, Claude Desktop, Claude Code, Gemini CLI, Codex, or any MCP-compatible client.
 
 Multiplayer means parties who don't already know each other — an agent paying a person, or another agent, with no prior relationship and no account to fall back on. Connect is how it verifies who it's dealing with before sending anything.
 
@@ -23,6 +23,18 @@ claude mcp add --transport http quidli https://mcp.connect.quid.li/
 **Cursor:** [Add to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=quidli-connect&config=eyJ1cmwiOiJodHRwczovL21jcC5jb25uZWN0LnF1aWQubGkifQ==) (or paste that link into **Settings → MCP → Add new MCP server**)
 
 **Claude Desktop:** **Settings → Connectors → Add custom connector**, URL `https://mcp.connect.quid.li`
+
+**Gemini CLI:**
+
+```bash
+gemini mcp add -s user -t http quidli https://mcp.connect.quid.li/
+```
+
+**Codex:**
+
+```bash
+codex mcp add quidli --url https://mcp.connect.quid.li/
+```
 
 **Local (any client)** — installs from npm and runs on your machine:
 
@@ -81,6 +93,14 @@ Get a Connect API key at [connect.quid.li](https://connect.quid.li) → **Enable
 ## Hosted (recommended)
 
 Zero local setup. Lookup, scores, and price work without an API key (shared anonymous quota). Add a key for higher limits, your profile (`connect_me`), and Smart Send.
+
+Connect reads the key only from the `x-api-key` header. A key sent as `Authorization: Bearer` is ignored (see [Troubleshooting](#unauthorized-api-key-missing)).
+
+### Claude Code
+
+```bash
+claude mcp add --transport http quidli https://mcp.connect.quid.li/ --header "x-api-key: <your-connect-api-key>"
+```
 
 ### Cursor
 
@@ -156,6 +176,32 @@ If your Claude version does not support remote `url` connectors, use the local b
 Requires **Node.js 20+** for the bridge. Restart Claude Desktop after saving. You should see a hammer icon in the chat input when tools are available.
 
 Without a key, `initialize` / `tools/list` always succeed. Anonymous `tools/call` share a global quota (HTTP **429** when exceeded — get a key for higher limits). Placeholder keys still return **401**.
+
+### Gemini CLI
+
+```bash
+gemini mcp add -s user -t http -H "x-api-key: <your-connect-api-key>" quidli https://mcp.connect.quid.li/
+```
+
+Gemini CLI asks before each tool call, which is a useful check on sends. Headless runs (`gemini -p`) can't ask, so they need `--approval-mode yolo`, plus `GEMINI_CLI_TRUST_WORKSPACE=true` outside a trusted folder. That approves every call, sends included, so only use it where that's intended.
+
+### Codex
+
+`codex mcp add` only supports bearer tokens, so set the header in `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.quidli]
+url = "https://mcp.connect.quid.li/"
+env_http_headers = { "x-api-key" = "QUIDLI_KEY" }
+```
+
+Then:
+
+```bash
+export QUIDLI_KEY=<your-connect-api-key>
+```
+
+Codex sends the value of that environment variable as the header, so the key stays out of the file.
 
 ---
 
@@ -356,6 +402,10 @@ This isn't a general claim that Bun is better than npm -- it's a targeted fix
 for one specific, reproducible failure mode when `npx` is spawned outside an
 interactive shell.
 
+### `Unauthorized: API key missing`
+
+A tool call returns `Unauthorized: API key missing` even though you set a key. The key was sent as `Authorization: Bearer <key>`, or your client has no header field (Grok). Connect only reads the `x-api-key` header, so send it as `x-api-key: <your-connect-api-key>`.
+
 ### Wrong environment variable name for the API key
 
 Double-check you're setting `CONNECT_API_KEY`, not `API_KEY` -- the server
@@ -363,6 +413,18 @@ only reads `CONNECT_API_KEY`, and a mismatch here fails silently: your calls
 will run in anonymous/unauthenticated mode instead of erroring, which can
 look like a working-but-oddly-limited connection rather than a config
 mistake.
+
+## Tested clients
+
+Tested end to end on 2026-11-25: `connect_lookup`, plus a real 0.01 USDC `connect_drop` on Base.
+
+| Client | Lookup | Send | Notes |
+| ------ | ------ | ---- | ----- |
+| Claude Code / Claude Desktop | Yes | Yes | |
+| Cursor | | | Not retested |
+| Gemini CLI (0.71) | Yes | Yes | Asks before each tool call |
+| Codex (0.172) | Yes | Yes | API key via `env_http_headers` |
+| Grok | Yes | No | Lookup only, no header field |
 
 ## Supported chains
 
