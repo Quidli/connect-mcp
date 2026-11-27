@@ -94,7 +94,7 @@ Get a Connect API key at [connect.quid.li](https://connect.quid.li) → **Enable
 
 Zero local setup. Lookup, scores, and price work without an API key (shared anonymous quota). Add a key for higher limits, your profile (`connect_me`), and Smart Send.
 
-Connect reads the key only from the `x-api-key` header. A key sent as `Authorization: Bearer` is ignored (see [Troubleshooting](#unauthorized-api-key-missing)).
+Send the key as the `x-api-key` header, or as `Authorization: Bearer <key>` for clients that only offer a bearer token. If both are sent, `x-api-key` wins.
 
 ### Claude Code
 
@@ -187,21 +187,12 @@ Gemini CLI asks before each tool call, which is a useful check on sends. Headles
 
 ### Codex
 
-`codex mcp add` only supports bearer tokens, so set the header in `~/.codex/config.toml`:
-
-```toml
-[mcp_servers.quidli]
-url = "https://mcp.connect.quid.li/"
-env_http_headers = { "x-api-key" = "QUIDLI_KEY" }
-```
-
-Then:
-
 ```bash
 export QUIDLI_KEY=<your-connect-api-key>
+codex mcp add quidli --url https://mcp.connect.quid.li/ --bearer-token-env-var QUIDLI_KEY
 ```
 
-Codex sends the value of that environment variable as the header, so the key stays out of the file.
+Codex sends the value of that environment variable as a bearer token, so the key stays out of its config file.
 
 ---
 
@@ -404,7 +395,7 @@ interactive shell.
 
 ### `Unauthorized: API key missing`
 
-A tool call returns `Unauthorized: API key missing` even though you set a key. The key was sent as `Authorization: Bearer <key>`, or your client has no header field (Grok). Connect only reads the `x-api-key` header, so send it as `x-api-key: <your-connect-api-key>`.
+A tool call returns `Unauthorized: API key missing` even though you set a key. The key didn't reach Connect: it was sent in a header Connect doesn't read, or your client has no header field (Grok). Send it as `x-api-key: <your-connect-api-key>` or `Authorization: Bearer <your-connect-api-key>`.
 
 ### Wrong environment variable name for the API key
 
@@ -423,7 +414,7 @@ Tested end to end on 2026-11-25: `connect_lookup`, plus a real 0.01 USDC `connec
 | Claude Code / Claude Desktop | Yes | Yes | |
 | Cursor | | | Not retested |
 | Gemini CLI (0.71) | Yes | Yes | Asks before each tool call |
-| Codex (0.172) | Yes | Yes | API key via `env_http_headers` |
+| Codex (0.172) | Yes | Yes | Tested with the key in `env_http_headers`, before bearer tokens were accepted |
 | Grok | Yes | No | Lookup only, no header field |
 
 ## Supported chains

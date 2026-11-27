@@ -25,11 +25,22 @@ describe('http-auth', () => {
     expect(isPlaceholderApiKey('real-key')).toBe(false);
   });
 
+  it('reads Authorization: Bearer when x-api-key is absent', () => {
+    const req = (headers: Record<string, string>) => ({ headers }) as unknown as IncomingMessage;
+    expect(extractRequestApiKey(req({ authorization: 'Bearer key-456' }))).toBe('key-456');
+    expect(extractRequestApiKey(req({ authorization: '  bearer   key-456 ' }))).toBe('key-456');
+    expect(extractRequestApiKey(req({ 'x-api-key': 'key-123', authorization: 'Bearer key-456' }))).toBe('key-123');
+    expect(extractRequestApiKey(req({ authorization: 'Basic abc' }))).toBeUndefined();
+    expect(extractRequestApiKey(req({ authorization: 'Bearer' }))).toBeUndefined();
+    expect(validateRequestApiKey(req({ authorization: 'Bearer your-connect-api-key' }), {}).ok).toBe(false);
+    expect(validateRequestApiKey(req({ authorization: 'Bearer real-key' }), {})).toEqual({ ok: true, apiKey: 'real-key' });
+  });
+
   it('rejects missing api key when anonymous is disabled', () => {
     const result = validateRequestApiKey(requestWithApiKey(), {});
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.message).toMatch(/Missing x-api-key/);
+      expect(result.message).toMatch(/Missing API key.*x-api-key.*Bearer/);
     }
   });
 
@@ -44,7 +55,7 @@ describe('http-auth', () => {
     const result = validateRequestApiKey(requestWithApiKey(''), {});
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.message).toMatch(/Missing x-api-key/);
+      expect(result.message).toMatch(/Missing API key/);
     }
   });
 

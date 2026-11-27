@@ -25,11 +25,17 @@ export interface HeaderCarrier {
   headers: IncomingHttpHeaders;
 }
 
+const firstHeader = (raw: string | string[] | undefined): string | undefined =>
+  (Array.isArray(raw) ? raw[0] : raw)?.trim() || undefined;
+
+// The key is read from x-api-key, or from Authorization: Bearer <key> for
+// clients whose MCP setup only offers a bearer token (Codex's `mcp add`, for
+// example). x-api-key wins when both are sent.
 export function extractRequestApiKey(req: HeaderCarrier): string | undefined {
-  const raw = req.headers['x-api-key'];
-  const value = Array.isArray(raw) ? raw[0] : raw;
-  const trimmed = value?.trim();
-  return trimmed || undefined;
+  const apiKey = firstHeader(req.headers['x-api-key']);
+  if (apiKey) return apiKey;
+  const bearer = firstHeader(req.headers.authorization)?.match(/^Bearer\s+(\S+)$/i)?.[1];
+  return bearer || undefined;
 }
 
 export function isPlaceholderApiKey(apiKey: string): boolean {
@@ -48,7 +54,7 @@ export function validateRequestApiKey(
     return {
       ok: false,
       message:
-        'Missing x-api-key header. Get a key at https://connect.quid.li (Enable API access) and set it in your MCP headers.',
+        'Missing API key. Send it as the x-api-key header or as Authorization: Bearer <key>. Get a key at https://connect.quid.li (Enable API access).',
     };
   }
 

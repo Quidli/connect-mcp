@@ -137,8 +137,8 @@ export function normalizeAcceptHeader(req: NormalizableRequest): void {
 
 // A browser refuses a cross-origin MCP call unless the server opts in, which is
 // why a page cannot call this endpoint today. Only the anonymous surface is
-// opened: x-api-key is deliberately absent from the allowed headers, so a
-// browser cannot send one at all, and credentials are never allowed, so cookies
+// opened: x-api-key and authorization are deliberately absent from the allowed
+// headers, so a browser cannot send a key at all, and credentials are never allowed, so cookies
 // are not attached either. Keyed calls stay server-side, where they belong.
 const CORS_ALLOW_HEADERS = 'content-type, accept, mcp-protocol-version';
 
